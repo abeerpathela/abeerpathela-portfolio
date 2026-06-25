@@ -2,51 +2,45 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .scroll-section {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
   min-height: 100svh;
-  padding: 4rem 1.5rem;
+  padding: 2rem;
   box-sizing: border-box;
 }
 
-.scroll-section__inner {
-  width: min(720px, 100%);
-  text-align: center;
+.scroll-section__marker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
-.scroll-section__eyebrow {
-  margin: 0 0 1rem;
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
+.scroll-section__tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: rgba(196, 212, 255, 0.65);
+  color: rgba(196, 212, 255, 0.7);
 }
 
-.scroll-section__title {
-  margin: 0 0 1.25rem;
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: #f4f7ff;
-  text-shadow: 0 0 40px rgba(107, 140, 255, 0.25);
+.scroll-section__hint {
+  font-size: 0.8rem;
+  color: rgba(244, 247, 255, 0.4);
 }
 
-.scroll-section__body {
-  margin: 0 auto;
-  max-width: 36ch;
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: rgba(244, 247, 255, 0.62);
-}
+@media (max-width: 640px) {
+  .scroll-section {
+    padding: 1.25rem;
+  }
 
-.scroll-spacer {
-  height: 40vh;
+  .scroll-section__marker {
+    opacity: 0.25;
+  }
 }

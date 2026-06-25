@@ -1,0 +1,16 @@
+.resume-disk-label {
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: #020208;
+  background: #c4d4ff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.resume-disk-label:hover {
+  background: #f4f7ff;
+}

@@ -1,6 +1,7 @@
 :root {
   --font-display: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
   --space-bg: #020208;
 }
 
@@ -50,4 +51,10 @@ body {
 
 #root {
   min-height: 100svh;
+}
+
+input,
+textarea,
+button {
+  font: inherit;
 }

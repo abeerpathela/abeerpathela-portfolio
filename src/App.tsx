@@ -6,6 +6,7 @@ import { StatCounters } from './components/UI/StatCounters'
 import { TerminalForm } from './components/UI/TerminalForm'
 import { HeroPortal } from './components/Hero/HeroPortal'
 import { ProjectShowcase } from './components/Projects/ProjectShowcase'
+import { TechShowcase } from './components/Tech/TechShowcase'
 import { Universe } from './components/Universe/Universe'
 import { PROJECTS } from './data/portfolio'
 import { JourneyProvider, useJourney } from './context/JourneyContext'
@@ -34,6 +35,7 @@ function AppContent() {
       {isProjectDocking && currentProject && (
         <ProjectShowcase project={currentProject} isVisible={isProjectDocking} />
       )}
+      <TechShowcase />
       <HUD scrollProgress={scrollProgress} mode={hudMode} />
       <StatCounters active={achievementsActive} />
       <TerminalForm visible={hudMode === 'Contact'} />

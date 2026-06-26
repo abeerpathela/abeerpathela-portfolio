@@ -29,10 +29,11 @@ export function SceneContent({ onReady }: SceneContentProps) {
 
       <EffectComposer multisampling={0}>
         <Bloom
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.9}
-          intensity={1.6}
+          luminanceThreshold={0.15}
+          luminanceSmoothing={0.8}
+          intensity={1.8}
           mipmapBlur
+          levels={8}
         />
       </EffectComposer>
     </>

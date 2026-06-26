@@ -27,37 +27,66 @@ function ProjectImage({ imageUrl, size, isHighlighted }: { imageUrl: string; siz
 
   texture.minFilter = THREE.LinearMipmapLinearFilter
   texture.magFilter = THREE.LinearFilter
-  texture.anisotropy = 16
+  texture.anisotropy = 8
   texture.colorSpace = THREE.SRGBColorSpace
 
   const aspect = texture.image ? texture.image.width / texture.image.height : 16 / 9
-  const planeWidth = size * 2
+  const planeWidth = size * 2.4
   const planeHeight = planeWidth / aspect
 
   return (
     <>
-      {/* Glow background for highlighted state */}
+      {/* Outer glow layers for maximum prominence */}
       {isHighlighted && (
-        <mesh position={[0, size + 2.5, size * 0.85]}>
-          <planeGeometry args={[planeWidth + 0.3, planeHeight + 0.3]} />
-          <meshBasicMaterial
-            color="#6b8cff"
-            transparent
-            opacity={0.3}
-            toneMapped={false}
-          />
-        </mesh>
+        <>
+          {/* Outer glow - largest */}
+          <mesh position={[0, size + 2.5, size * 0.8]}>
+            <planeGeometry args={[planeWidth + 0.8, planeHeight + 0.8]} />
+            <meshBasicMaterial
+              color="#6b8cff"
+              transparent
+              opacity={0.15}
+              toneMapped={false}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Mid glow */}
+          <mesh position={[0, size + 2.5, size * 0.85]}>
+            <planeGeometry args={[planeWidth + 0.5, planeHeight + 0.5]} />
+            <meshBasicMaterial
+              color="#6b8cff"
+              transparent
+              opacity={0.25}
+              toneMapped={false}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Inner glow - closest */}
+          <mesh position={[0, size + 2.5, size * 0.87]}>
+            <planeGeometry args={[planeWidth + 0.2, planeHeight + 0.2]} />
+            <meshBasicMaterial
+              color="#7da3ff"
+              transparent
+              opacity={0.4}
+              toneMapped={false}
+              depthWrite={false}
+            />
+          </mesh>
+        </>
       )}
+      {/* Main image */}
       <mesh position={[0, size + 2.5, size * 0.9]}>
         <planeGeometry args={[planeWidth, planeHeight]} />
         <meshStandardMaterial
           map={texture}
           transparent
-          opacity={isHighlighted ? 1 : 0.95}
+          opacity={isHighlighted ? 1 : 0.7}
           side={THREE.DoubleSide}
           toneMapped={false}
-          emissive={isHighlighted ? '#6b8cff' : '#000000'}
-          emissiveIntensity={isHighlighted ? 0.15 : 0}
+          emissive={isHighlighted ? '#5d7cff' : '#1a1a2e'}
+          emissiveIntensity={isHighlighted ? 0.3 : 0.05}
+          metalness={0}
+          roughness={isHighlighted ? 0.2 : 0.5}
         />
       </mesh>
     </>
@@ -121,24 +150,27 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
 
       <Float speed={0.6} rotationIntensity={0.15} floatIntensity={0}>
         <mesh ref={ringRef} rotation={[Math.PI / 2.5, 0.3, 0]}>
-          <torusGeometry args={[project.size * 1.9, 0.06, 16, 64]} />
+          <torusGeometry args={[project.size * 1.9, 0.06, 12, 48]} />
           <meshStandardMaterial
             color={project.color}
             emissive={project.emissive}
-            emissiveIntensity={0.9}
-            metalness={0.95}
-            roughness={0.05}
+            emissiveIntensity={isCurrentlyDocking ? 1.2 : 0.8}
+            metalness={0.8}
+            roughness={0.1}
             transparent
-            opacity={0.7}
+            opacity={isCurrentlyDocking ? 1 : 0.6}
+            toneMapped={false}
+            depthWrite={false}
           />
         </mesh>
       </Float>
 
       <pointLight
-        intensity={10}
+        intensity={isCurrentlyDocking ? 15 : 8}
         color={project.color}
-        distance={30}
-        decay={1.4}
+        distance={isCurrentlyDocking ? 40 : 25}
+        decay={1.2}
+        castShadow={false}
       />
 
       {imageUrl && (

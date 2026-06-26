@@ -3,6 +3,7 @@ import { ScrollContent } from './components/ScrollContent/ScrollContent'
 import { HUD } from './components/UI/HUD'
 import { StatCounters } from './components/UI/StatCounters'
 import { TerminalForm } from './components/UI/TerminalForm'
+import { HeroPortal } from './components/Hero/HeroPortal'
 import { Universe } from './components/Universe/Universe'
 import { JourneyProvider, useJourney } from './context/JourneyContext'
 import { LoadingProvider } from './context/LoadingContext'
@@ -18,6 +19,7 @@ function AppContent() {
     <>
       <Preloader />
       <Universe />
+      <HeroPortal />
       <HUD scrollProgress={scrollProgress} mode={hudMode} />
       <StatCounters active={achievementsActive} />
       <TerminalForm visible={hudMode === 'Contact'} />

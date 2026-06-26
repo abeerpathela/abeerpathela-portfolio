@@ -5,8 +5,8 @@ import type { Group } from 'three'
 import { useMouseParallaxRef } from '../../hooks/useMouseParallax'
 
 /**
- * "The Orbital Nexus" — procedural hero station.
- * Swap this group for useGLTF('/models/your-hero.glb') when you have a custom asset.
+ * "The Orbital Nexus" — Hero landing experience
+ * Premium central nexus that introduces the portfolio
  */
 export function HeroNexus() {
   const groupRef = useRef<Group>(null)
@@ -16,55 +16,88 @@ export function HeroNexus() {
     const group = groupRef.current
     if (!group) return
 
-    const targetRotY = mouse.current.x * 0.18
-    const targetRotX = mouse.current.y * 0.1
-    const targetX = mouse.current.x * 0.6
-    const targetY = mouse.current.y * 0.35
+    const targetRotY = mouse.current.x * 0.15
+    const targetRotX = mouse.current.y * 0.08
+    const targetX = mouse.current.x * 0.4
+    const targetY = mouse.current.y * 0.25
 
-    group.rotation.y += (targetRotY - group.rotation.y) * delta * 3
-    group.rotation.x += (targetRotX - group.rotation.x) * delta * 3
-    group.position.x += (targetX - group.position.x) * delta * 3
-    group.position.y += (targetY - group.position.y) * delta * 3
+    group.rotation.y += (targetRotY - group.rotation.y) * delta * 2.5
+    group.rotation.x += (targetRotX - group.rotation.x) * delta * 2.5
+    group.position.x += (targetX - group.position.x) * delta * 2.5
+    group.position.y += (targetY - group.position.y) * delta * 2.5
   })
 
   return (
-    <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.4}>
-      <group ref={groupRef} position={[0, 0, 25]}>
-        <mesh castShadow receiveShadow>
-          <icosahedronGeometry args={[4, 1]} />
+    <Float speed={0.8} rotationIntensity={0.08} floatIntensity={0.3}>
+      <group ref={groupRef} position={[15, 5, 25]}>
+        {/* Central core sphere */}
+        <mesh castShadow>
+          <icosahedronGeometry args={[3.5, 2]} />
           <meshStandardMaterial
-            color="#8eb4ff"
-            emissive="#3d5a9e"
-            emissiveIntensity={0.6}
-            metalness={0.85}
-            roughness={0.2}
-            wireframe
+            color="#6b8cff"
+            emissive="#5d7cff"
+            emissiveIntensity={0.5}
+            metalness={0.7}
+            roughness={0.3}
+            toneMapped={false}
           />
         </mesh>
 
+        {/* Inner glow sphere */}
+        <mesh>
+          <sphereGeometry args={[3.8, 32, 32]} />
+          <meshBasicMaterial
+            color="#6b8cff"
+            transparent
+            opacity={0.1}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* Primary ring - fast rotation */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[7, 0.12, 16, 64]} />
+          <torusGeometry args={[6.5, 0.1, 14, 64]} />
           <meshStandardMaterial
-            color="#c4d4ff"
+            color="#a0c4ff"
             emissive="#6b8cff"
-            emissiveIntensity={0.8}
-            metalness={0.9}
-            roughness={0.15}
+            emissiveIntensity={1}
+            metalness={0.85}
+            roughness={0.1}
+            toneMapped={false}
           />
         </mesh>
 
-        <mesh rotation={[Math.PI / 3.5, 0.4, 0]}>
-          <torusGeometry args={[9.5, 0.08, 12, 64]} />
+        {/* Secondary ring - tilted */}
+        <mesh rotation={[Math.PI / 3, 0.5, Math.PI / 6]}>
+          <torusGeometry args={[8.5, 0.08, 12, 48]} />
+          <meshStandardMaterial
+            color="#7da3ff"
+            emissive="#5d7cff"
+            emissiveIntensity={0.7}
+            metalness={0.8}
+            roughness={0.15}
+            transparent
+            opacity={0.8}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* Tertiary ring - larger, subtle */}
+        <mesh rotation={[-Math.PI / 4, 0.2, 0]}>
+          <torusGeometry args={[10.5, 0.06, 10, 40]} />
           <meshStandardMaterial
             color="#6b8cff"
             emissive="#4a6fd4"
-            emissiveIntensity={0.5}
+            emissiveIntensity={0.4}
             transparent
-            opacity={0.7}
+            opacity={0.5}
+            toneMapped={false}
+            depthWrite={false}
           />
         </mesh>
 
-        <pointLight position={[0, 0, 0]} intensity={12} color="#8eb4ff" distance={30} />
+        {/* Enhanced point light */}
+        <pointLight position={[0, 0, 0]} intensity={20} color="#6b8cff" distance={40} decay={1.2} />
       </group>
     </Float>
   )

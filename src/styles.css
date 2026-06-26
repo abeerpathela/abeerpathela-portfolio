@@ -142,3 +142,55 @@
     color: var(--color-foreground);
   }
 }
+
+/* === HUD / Tactical Theme === */
+@utility hud-border {
+  border: 1px solid oklch(0.82 0.18 195 / 0.5);
+  box-shadow: 0 0 12px oklch(0.82 0.18 195 / 0.25), inset 0 0 12px oklch(0.82 0.18 195 / 0.08);
+}
+
+@utility hud-text {
+  color: oklch(0.95 0.18 195);
+  text-shadow: 0 0 8px oklch(0.82 0.18 195 / 0.7);
+  letter-spacing: 0.12em;
+  font-family: "Orbitron", "Courier New", monospace;
+}
+
+@utility hud-mono {
+  font-family: "JetBrains Mono", "Courier New", monospace;
+}
+
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    oklch(0.82 0.18 195 / 0.04) 2px,
+    oklch(0.82 0.18 195 / 0.04) 3px
+  );
+  mix-blend-mode: screen;
+  z-index: 60;
+}
+
+@keyframes hud-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hud-blink { animation: hud-blink 1.6s ease-in-out infinite; }
+
+@keyframes corner-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.corner-pulse { animation: corner-pulse 2.4s ease-in-out infinite; }

@@ -209,89 +209,182 @@ function SafeImage({ url, ...props }: { url: string } & React.ComponentProps<typ
   return <DreiImage url={url} {...props} />;
 }
 
-/* ------------------------- Sector 1: Projects (9 planets) ------------------------- */
-function ProjectsSector({ z }: { z: number }) {
-  const radius = 7;
+/* ------------------------- Intro Station ------------------------- */
+function IntroStation({ z }: { z: number }) {
+  const ringRef = useRef<THREE.Mesh>(null);
+  useFrame((s) => {
+    if (ringRef.current) ringRef.current.rotation.z = s.clock.elapsedTime * 0.15;
+  });
   return (
     <group position={[0, 0, z]}>
-      <SectorTitle z={0} title="PROJECTS NEBULA" subtitle="9 ACTIVE BUILDS" />
-      {PORTFOLIO_DATA.projects.map((p, i) => {
-        const angle = (i / PORTFOLIO_DATA.projects.length) * Math.PI * 2;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * 2.5 + 1;
-        const localZ = Math.sin(angle) * radius * 0.5 - 4;
-        return <ProjectPlanet key={p.title} project={p} position={[x, y, localZ]} index={i} />;
-      })}
+      <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.4}>
+        <Sphere args={[1.1, 48, 48]} position={[0, 1.3, -2]}>
+          <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={0.8} roughness={0.2} />
+        </Sphere>
+        <Torus ref={ringRef} args={[2, 0.03, 16, 80]} position={[0, 1.3, -2]} rotation={[Math.PI / 2.4, 0, 0]}>
+          <meshBasicMaterial color="#00e5ff" />
+        </Torus>
+      </Float>
+      <Billboard position={[0, 3.4, -1]}>
+        <Text fontSize={0.9} color="#7df9ff" outlineWidth={0.02} outlineColor="#00e5ff" anchorX="center">
+          ABEER PATHELA
+        </Text>
+        <Text position={[0, -0.7, 0]} fontSize={0.28} color="#7df9ff" anchorX="center">
+          CREATIVE ENGINEER · FULL-STACK · AI
+        </Text>
+        <Text position={[0, -1.15, 0]} fontSize={0.22} color="#7df9ff" anchorX="center" maxWidth={8}>
+          Scroll to dock with each project · 9 missions ahead
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-function ProjectPlanet({
-  project,
-  position,
+/* ------------------------- Project Station (one per project) ------------------------- */
+function ProjectStation({
+  z,
   index,
+  total,
 }: {
-  project: (typeof PORTFOLIO_DATA.projects)[number];
-  position: [number, number, number];
+  z: number;
   index: number;
+  total: number;
 }) {
+  const project = PORTFOLIO_DATA.projects[index];
   const planetRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
   const color = useMemo(
-    () => new THREE.Color().setHSL((index / 9) * 0.8 + 0.5, 0.7, 0.55),
-    [index],
+    () => new THREE.Color().setHSL((index / total) * 0.8 + 0.5, 0.7, 0.55),
+    [index, total],
   );
 
   useFrame((state) => {
-    if (planetRef.current) {
-      planetRef.current.rotation.y = state.clock.elapsedTime * 0.3;
-    }
+    if (planetRef.current) planetRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+    if (ringRef.current) ringRef.current.rotation.z = state.clock.elapsedTime * 0.2;
   });
 
+  // Alternate the planet to opposite sides for visual rhythm.
+  const planetSide = index % 2 === 0 ? -3.6 : 3.6;
+
   return (
-    <group position={position}>
-      <Float speed={1.4} rotationIntensity={0.2} floatIntensity={0.5}>
-        <Sphere ref={planetRef} args={[0.7, 32, 32]}>
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} roughness={0.4} />
-        </Sphere>
-        <Torus args={[1.1, 0.02, 16, 64]} rotation={[Math.PI / 2.3, 0, 0]}>
-          <meshBasicMaterial color={color} transparent opacity={0.5} />
-        </Torus>
+    <group position={[0, 0, z]}>
+      {/* Station marker badge */}
+      <Billboard position={[0, 4.3, 0]}>
+        <Text fontSize={0.22} color="#7df9ff" anchorX="center" outlineWidth={0.005} outlineColor="#00e5ff">
+          {`▣ PROJECT ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
+        </Text>
+      </Billboard>
 
-        <Billboard position={[0, 2, 0]}>
-          <SafeImage
-            url={project.img}
-            scale={[3.2, 2, 1] as any}
-            transparent
-            // @ts-expect-error drei Image extras
-            anisotropy={16}
-          />
-          <mesh position={[0, 0, -0.01]}>
-            <planeGeometry args={[3.4, 2.2]} />
-            <meshBasicMaterial color="#00e5ff" transparent opacity={0.15} />
-          </mesh>
+      {/* Planet on one side */}
+      <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.4}>
+        <group position={[planetSide, 1.4, -2.5]}>
+          <Sphere ref={planetRef} args={[1.1, 48, 48]}>
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={0.5}
+              roughness={0.35}
+              metalness={0.2}
+            />
+          </Sphere>
+          <Torus ref={ringRef} args={[1.8, 0.025, 16, 80]} rotation={[Math.PI / 2.3, 0, 0]}>
+            <meshBasicMaterial color={color} transparent opacity={0.7} />
+          </Torus>
+          <Sphere args={[1.5, 32, 32]}>
+            <meshBasicMaterial color={color} transparent opacity={0.08} />
+          </Sphere>
+        </group>
+      </Float>
 
-          <Text position={[0, -1.35, 0.01]} fontSize={0.28} color="#7df9ff" anchorX="center">
-            {project.title.toUpperCase()}
-          </Text>
-          <Text position={[0, -1.7, 0.01]} fontSize={0.18} color="#7df9ff" anchorX="center" maxWidth={3}>
-            {project.desc}
-          </Text>
+      {/* Holographic dossier */}
+      <Billboard position={[0, 1.4, -1]}>
+        {/* Holo frame */}
+        <mesh position={[0, 0, -0.02]}>
+          <planeGeometry args={[5.6, 4]} />
+          <meshBasicMaterial color="#001821" transparent opacity={0.7} />
+        </mesh>
+        <mesh position={[0, 0, -0.015]}>
+          <planeGeometry args={[5.8, 4.2]} />
+          <meshBasicMaterial color={color} transparent opacity={0.18} />
+        </mesh>
 
-          <Html
-            position={[0, -2.2, 0.01]}
-            center
-            transform
-            distanceFactor={8}
-            occlude={false}
-            style={{ pointerEvents: "auto" }}
-          >
-            <div className="flex gap-1.5 hud-mono">
+        {/* Top label strip */}
+        <Text
+          position={[-2.6, 1.78, 0.02]}
+          fontSize={0.14}
+          color="#7df9ff"
+          anchorX="left"
+        >
+          ▸ DOSSIER // CASE FILE
+        </Text>
+        <Text
+          position={[2.6, 1.78, 0.02]}
+          fontSize={0.14}
+          color="#7df9ff"
+          anchorX="right"
+        >
+          STATUS: ONLINE ●
+        </Text>
+
+        {/* Project image */}
+        <SafeImage
+          url={project.img}
+          scale={[5.2, 2.4, 1] as any}
+          position={[0, 0.55, 0.02]}
+          transparent
+          // @ts-expect-error drei Image extras
+          anisotropy={16}
+        />
+
+        {/* Title + desc */}
+        <Text
+          position={[0, -0.95, 0.02]}
+          fontSize={0.42}
+          color="#7df9ff"
+          anchorX="center"
+          outlineWidth={0.01}
+          outlineColor="#00e5ff"
+          maxWidth={5}
+        >
+          {project.title.toUpperCase()}
+        </Text>
+        <Text
+          position={[0, -1.45, 0.02]}
+          fontSize={0.22}
+          color="#a5e9ff"
+          anchorX="center"
+          maxWidth={5}
+        >
+          {project.desc}
+        </Text>
+
+        {/* Tech chips + action buttons as HTML overlay */}
+        <Html
+          position={[0, -1.85, 0.05]}
+          center
+          transform
+          distanceFactor={5}
+          occlude={false}
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="flex w-[440px] max-w-[88vw] flex-col items-center gap-2">
+            <div className="flex flex-wrap justify-center gap-1.5 hud-mono">
+              {project.tech.map((t) => (
+                <span
+                  key={t}
+                  className="hud-border rounded-sm bg-background/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur-sm"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2 hud-mono">
               {project.github && (
                 <a
                   href={project.github}
                   target="_blank"
                   rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm transition hover:bg-primary/20"
+                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
                 >
                   ▸ GITHUB
                 </a>
@@ -301,15 +394,15 @@ function ProjectPlanet({
                   href={project.live}
                   target="_blank"
                   rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm transition hover:bg-primary/20"
+                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
                 >
-                  ▸ LIVE
+                  ▸ LIVE DEMO
                 </a>
               )}
             </div>
-          </Html>
-        </Billboard>
-      </Float>
+          </div>
+        </Html>
+      </Billboard>
     </group>
   );
 }

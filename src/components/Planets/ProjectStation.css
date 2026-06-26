@@ -24,13 +24,37 @@
 }
 
 .station-card--docking {
-  transform: scale(1.05);
+  transform: scale(1.1);
   opacity: 1;
-  border-color: rgba(107, 140, 255, 0.8);
+  border-color: rgba(107, 140, 255, 0.95);
+  background: rgba(2, 2, 12, 0.95);
   box-shadow:
-    0 0 60px rgba(107, 140, 255, 0.35),
-    inset 0 0 30px rgba(107, 140, 255, 0.1),
-    0 0 30px rgba(107, 200, 255, 0.2);
+    0 0 80px rgba(107, 140, 255, 0.5),
+    inset 0 0 40px rgba(107, 140, 255, 0.15),
+    0 0 40px rgba(107, 200, 255, 0.35);
+}
+
+.station-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(107, 140, 255, 0.15);
+}
+
+.station-card__badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 2px;
+  font-weight: 600;
 }
 
 .station-card__title {

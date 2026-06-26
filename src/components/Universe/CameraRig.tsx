@@ -18,6 +18,8 @@ export function CameraRig() {
   const smoothLookAt = useMemo(() => new THREE.Vector3(), [])
   const currentLookAt = useMemo(() => new THREE.Vector3(), [])
   const dockingStartProgress = useRef(0)
+  const lastDockingZoneRef = useRef<string | null>(null)
+  const lastDockingStateRef = useRef(false)
 
   useEffect(() => {
     const camera = cameraRef.current
@@ -52,16 +54,20 @@ export function CameraRig() {
     
     if (isInDockingZone && currentWaypoint.section !== 'hero') {
       // We're in a docking zone
-      if (!isDocking || currentDockingZone !== currentWaypoint.id) {
+      if (!lastDockingStateRef.current || lastDockingZoneRef.current !== currentWaypoint.id) {
         setIsDocking(true)
         setCurrentDockingZone(currentWaypoint.id)
+        lastDockingStateRef.current = true
+        lastDockingZoneRef.current = currentWaypoint.id
         dockingStartProgress.current = smoothProgress.current
       }
     } else {
       // Not in a docking zone
-      if (isDocking) {
+      if (lastDockingStateRef.current) {
         setIsDocking(false)
         setCurrentDockingZone(null)
+        lastDockingStateRef.current = false
+        lastDockingZoneRef.current = null
       }
     }
 

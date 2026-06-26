@@ -22,7 +22,7 @@ type ProjectStationProps = {
   index: number
 }
 
-function ProjectImage({ imageUrl, size }: { imageUrl: string; size: number }) {
+function ProjectImage({ imageUrl, size, isHighlighted }: { imageUrl: string; size: number; isHighlighted: boolean }) {
   const texture = useTexture(imageUrl)
 
   texture.minFilter = THREE.LinearMipmapLinearFilter
@@ -35,16 +35,32 @@ function ProjectImage({ imageUrl, size }: { imageUrl: string; size: number }) {
   const planeHeight = planeWidth / aspect
 
   return (
-    <mesh position={[0, size + 2.5, size * 0.9]}>
-      <planeGeometry args={[planeWidth, planeHeight]} />
-      <meshStandardMaterial
-        map={texture}
-        transparent
-        opacity={0.98}
-        side={THREE.DoubleSide}
-        toneMapped={false}
-      />
-    </mesh>
+    <>
+      {/* Glow background for highlighted state */}
+      {isHighlighted && (
+        <mesh position={[0, size + 2.5, size * 0.85]}>
+          <planeGeometry args={[planeWidth + 0.3, planeHeight + 0.3]} />
+          <meshBasicMaterial
+            color="#6b8cff"
+            transparent
+            opacity={0.3}
+            toneMapped={false}
+          />
+        </mesh>
+      )}
+      <mesh position={[0, size + 2.5, size * 0.9]}>
+        <planeGeometry args={[planeWidth, planeHeight]} />
+        <meshStandardMaterial
+          map={texture}
+          transparent
+          opacity={isHighlighted ? 1 : 0.95}
+          side={THREE.DoubleSide}
+          toneMapped={false}
+          emissive={isHighlighted ? '#6b8cff' : '#000000'}
+          emissiveIntensity={isHighlighted ? 0.15 : 0}
+        />
+      </mesh>
+    </>
   )
 }
 
@@ -82,22 +98,24 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[project.size, 64, 64]} />
+        <sphereGeometry args={[project.size, 48, 48]} />
         <meshStandardMaterial
           color={project.color}
           emissive={project.emissive}
           emissiveIntensity={isCurrentlyDocking ? 0.9 : hovered ? 0.7 : 0.3}
-          roughness={0.4}
-          metalness={0.4}
+          roughness={0.5}
+          metalness={0.3}
+          toneMapped={false}
         />
       </mesh>
 
       <mesh scale={[1.3, 1.3, 1.3]}>
-        <sphereGeometry args={[project.size, 32, 32]} />
+        <sphereGeometry args={[project.size, 24, 24]} />
         <meshBasicMaterial
           color={project.color}
           transparent
-          opacity={0.08}
+          opacity={0.06}
+          depthWrite={false}
         />
       </mesh>
 
@@ -125,7 +143,7 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
 
       {imageUrl && (
         <Suspense fallback={null}>
-          <ProjectImage imageUrl={imageUrl} size={project.size} />
+          <ProjectImage imageUrl={imageUrl} size={project.size} isHighlighted={isCurrentlyDocking || hovered} />
         </Suspense>
       )}
 
@@ -137,7 +155,15 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
           style={{ pointerEvents: 'auto' }}
         >
           <div className={`station-card ${hovered ? 'station-card--active' : ''} ${isCurrentlyDocking ? 'station-card--docking' : ''}`}>
-            <h3 className="station-card__title">{project.title}</h3>
+            {isCurrentlyDocking && (
+              <div className="station-card__header">
+                <h3 className="station-card__title">{project.title}</h3>
+                <span className="station-card__badge">Featured</span>
+              </div>
+            )}
+            {!isCurrentlyDocking && (
+              <h3 className="station-card__title">{project.title}</h3>
+            )}
             <p className="station-card__desc">{project.description}</p>
             <div className="station-card__tech">
               {project.tech.map((t) => (

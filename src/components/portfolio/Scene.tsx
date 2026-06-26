@@ -60,11 +60,12 @@ export function Scene({ onSectorChange }: SceneProps) {
       dpr={[1, 2]}
       camera={{ position: [0, 2, 8], fov: isMobile ? 75 : 45, near: 0.1, far: 1000 }}
     >
-      <color attach="background" args={["#02040a"]} />
-      <fog attach="fog" args={["#02040a", 18, 55]} />
-      <ambientLight intensity={0.35} />
-      <pointLight position={[10, 10, 10]} intensity={1.2} color="#00e5ff" />
-      <pointLight position={[-10, -5, -10]} intensity={0.8} color="#ff00aa" />
+      <color attach="background" args={["#070418"]} />
+      <fog attach="fog" args={["#0a0820", 18, 55]} />
+      <ambientLight intensity={0.45} />
+      <pointLight position={[10, 10, 10]} intensity={1.3} color="#7c5cff" />
+      <pointLight position={[-10, -5, -10]} intensity={1.0} color="#ff5dc8" />
+      <pointLight position={[0, 8, -20]} intensity={0.9} color="#ffb86b" />
 
       <Stars radius={120} depth={80} count={6000} factor={4} saturation={0} fade speed={0.5} />
 

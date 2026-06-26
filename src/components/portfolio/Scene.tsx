@@ -15,6 +15,7 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { PORTFOLIO_DATA, STATION_SPACING } from "./data";
+import * as SiIcons from "react-icons/si";
 
 /* ------------------------- Stations ------------------------- */
 // Each project is its own destination station, then the supporting sectors.
@@ -36,7 +37,7 @@ const STATIONS: Station[] = [
   { kind: "participations", label: "PARTICIPATIONS GALLERY" },
   { kind: "tech", label: "TECH GALAXY" },
   { kind: "achievements", label: "ACHIEVEMENT CORE" },
-  { kind: "contact", label: "COMMS RELAY" },
+  { kind: "contact", label: "CONTACT CHANNEL" },
 ];
 const STATION_COUNT = STATIONS.length;
 

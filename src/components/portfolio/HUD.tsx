@@ -4,9 +4,10 @@ import { PORTFOLIO_DATA } from "./data";
 interface HUDProps {
   currentSector: number;
   currentLabel: string;
+  totalStations: number;
 }
 
-export function HUD({ currentSector, currentLabel }: HUDProps) {
+export function HUD({ currentSector, currentLabel, totalStations }: HUDProps) {
   const [time, setTime] = useState("");
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function HUD({ currentSector, currentLabel }: HUDProps) {
     return () => clearInterval(id);
   }, []);
 
-  const totalSectors = PORTFOLIO_DATA.sectors.length;
+  const totalSectors = totalStations;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 scanlines">
@@ -54,25 +55,22 @@ export function HUD({ currentSector, currentLabel }: HUDProps) {
         </a>
       </div>
 
-      {/* Left rail – sector index */}
-      <div className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-3 md:flex">
-        {PORTFOLIO_DATA.sectors.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`h-px transition-all ${
-                i === currentSector
-                  ? "w-10 bg-primary shadow-[0_0_8px_currentColor]"
-                  : "w-4 bg-primary/30"
-              }`}
-            />
-            <span
-              className={`hud-mono text-[10px] uppercase tracking-widest transition-colors ${
-                i === currentSector ? "text-primary" : "text-primary/40"
-              }`}
-            >
-              S{String(i + 1).padStart(2, "0")}
-            </span>
-          </div>
+      {/* Left rail – station progress dots */}
+      <div className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-1.5 md:flex">
+        <span className="hud-mono mb-2 text-[9px] uppercase tracking-widest text-primary/60">
+          STN
+        </span>
+        {Array.from({ length: totalStations }).map((_, i) => (
+          <div
+            key={i}
+            className={`transition-all ${
+              i === currentSector
+                ? "h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_10px_currentColor]"
+                : i < currentSector
+                ? "h-1.5 w-1.5 rounded-full bg-primary/70"
+                : "h-1.5 w-1.5 rounded-full bg-primary/25"
+            }`}
+          />
         ))}
       </div>
 

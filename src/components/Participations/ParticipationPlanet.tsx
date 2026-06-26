@@ -1,19 +1,8 @@
-import { Float, Html, useTexture } from '@react-three/drei'
-import { useFrame, useThree } from '@react-three/fiber'
-import { useRef, useState, useMemo, Suspense } from 'react'
-import * as THREE from 'three'
-import type { Mesh, Group } from 'three'
+import { Html, Billboard } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import { useRef, useMemo } from 'react'
+import type { Group } from 'three'
 import { PARTICIPATIONS } from '../../data/portfolio'
-
-const imageModules = import.meta.glob(
-  '/src/assets/Participations/*.{png,jpeg,jpg}',
-  { eager: true, query: '?url', import: 'default' }
-) as Record<string, string>
-
-function resolveImageUrl(filename: string): string {
-  const key = `/src/assets/Participations/${filename}`
-  return imageModules[key] || ''
-}
 
 export function ParticipationPlanet() {
   const groupRef = useRef<Group>(null)
@@ -68,8 +57,6 @@ type ParticipationCardProps = {
 function ParticipationCard({ participation, index }: ParticipationCardProps) {
   const htmlGroupRef = useRef<Group>(null)
 
-  const imageUrl = resolveImageUrl(participation.imagePath)
-
   useFrame(({ camera, clock }) => {
     if (htmlGroupRef.current) {
       htmlGroupRef.current.quaternion.copy(camera.quaternion)
@@ -85,14 +72,15 @@ function ParticipationCard({ participation, index }: ParticipationCardProps) {
   })
 
   return (
-    <group ref={htmlGroupRef}>
-      <Html
-        transform
-        occlude
-        distanceFactor={14}
-        style={{ pointerEvents: 'auto' }}
-      >
-        <div className="participation-card">
+    <Billboard>
+      <group ref={htmlGroupRef}>
+        <Html
+          transform
+          occlude
+          distanceFactor={14}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <div className="participation-card">
           <h3 className="participation-card__title">{participation.title}</h3>
           <p className="participation-card__role">{participation.role}</p>
           <p className="participation-card__desc">{participation.description}</p>
@@ -111,6 +99,7 @@ function ParticipationCard({ participation, index }: ParticipationCardProps) {
           </a>
         </div>
       </Html>
-    </group>
+      </group>
+    </Billboard>
   )
 }

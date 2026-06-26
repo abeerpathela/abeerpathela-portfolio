@@ -4,6 +4,7 @@ import { useRef, useState, Suspense } from 'react'
 import * as THREE from 'three'
 import type { Mesh, Group } from 'three'
 import type { ProjectData } from '../../data/portfolio'
+import { useJourney } from '../../context/JourneyContext'
 import './ProjectStation.css'
 
 const imageModules = import.meta.glob(
@@ -53,7 +54,9 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
   const ringRef = useRef<Mesh>(null)
   const htmlGroupRef = useRef<Group>(null)
   const [hovered, setHovered] = useState(false)
+  const { currentDockingZone, isDocking } = useJourney()
 
+  const isCurrentlyDocking = isDocking && currentDockingZone === project.id
   const imageUrl = resolveImageUrl(project.imagePath)
 
   useFrame(({ camera, clock }, delta) => {
@@ -83,7 +86,7 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
         <meshStandardMaterial
           color={project.color}
           emissive={project.emissive}
-          emissiveIntensity={hovered ? 0.7 : 0.3}
+          emissiveIntensity={isCurrentlyDocking ? 0.9 : hovered ? 0.7 : 0.3}
           roughness={0.4}
           metalness={0.4}
         />
@@ -133,7 +136,7 @@ export function ProjectStation({ project, index }: ProjectStationProps) {
           distanceFactor={16}
           style={{ pointerEvents: 'auto' }}
         >
-          <div className={`station-card ${hovered ? 'station-card--active' : ''}`}>
+          <div className={`station-card ${hovered ? 'station-card--active' : ''} ${isCurrentlyDocking ? 'station-card--docking' : ''}`}>
             <h3 className="station-card__title">{project.title}</h3>
             <p className="station-card__desc">{project.description}</p>
             <div className="station-card__tech">

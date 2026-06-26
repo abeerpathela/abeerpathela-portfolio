@@ -9,7 +9,11 @@ type HUDProps = {
 }
 
 export function HUD({ scrollProgress, mode }: HUDProps) {
-  const { setScrollProgress } = useJourney()
+  const { setScrollProgress, isDocking, currentDockingZone } = useJourney()
+  
+  const currentWaypoint = currentDockingZone 
+    ? WAYPOINTS.find(w => w.id === currentDockingZone)
+    : null
   
   const navItems = [
     { label: 'Hero', waypointId: 'hero' },
@@ -40,7 +44,10 @@ export function HUD({ scrollProgress, mode }: HUDProps) {
       <div className="hud__left">
         <div className="hud__panel">
           <p className="hud__label">Scanner Mode</p>
-          <p className="hud__mode">{mode}</p>
+          <p className="hud__mode">{isDocking && currentWaypoint ? `DOCKING: ${currentWaypoint.label}` : mode}</p>
+          {isDocking && currentWaypoint && (
+            <p className="hud__status">→ Ready for interaction</p>
+          )}
         </div>
         
         <nav className="hud__nav">

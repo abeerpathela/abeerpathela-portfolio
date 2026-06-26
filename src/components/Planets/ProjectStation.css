@@ -23,6 +23,16 @@
     inset 0 0 25px rgba(107, 140, 255, 0.05);
 }
 
+.station-card--docking {
+  transform: scale(1.05);
+  opacity: 1;
+  border-color: rgba(107, 140, 255, 0.8);
+  box-shadow:
+    0 0 60px rgba(107, 140, 255, 0.35),
+    inset 0 0 30px rgba(107, 140, 255, 0.1),
+    0 0 30px rgba(107, 200, 255, 0.2);
+}
+
 .station-card__title {
   margin: 0;
   font-family: var(--font-display);

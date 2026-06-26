@@ -9,7 +9,7 @@ import { WAYPOINTS } from '../../config/journey'
 
 export function CameraRig() {
   const cameraRef = useRef<PerspectiveCameraImpl>(null)
-  const { journeyRef, scrollProgress } = useJourney()
+  const { journeyRef, scrollProgress, isDocking, setIsDocking, currentDockingZone, setCurrentDockingZone } = useJourney()
   const fov = useResponsiveFov()
   const { size } = useThree()
 
@@ -17,6 +17,7 @@ export function CameraRig() {
   const smoothPosition = useMemo(() => new THREE.Vector3(), [])
   const smoothLookAt = useMemo(() => new THREE.Vector3(), [])
   const currentLookAt = useMemo(() => new THREE.Vector3(), [])
+  const dockingStartProgress = useRef(0)
 
   useEffect(() => {
     const camera = cameraRef.current
@@ -37,14 +38,33 @@ export function CameraRig() {
       lerpFactor
     )
 
+    // Detect docking zones (±5% around project waypoints)
     const t = THREE.MathUtils.clamp(smoothProgress.current, 0, 1)
     const waypointIndex = Math.floor(t * (WAYPOINTS.length - 1))
-    const nextWaypointIndex = Math.min(waypointIndex + 1, WAYPOINTS.length - 1)
+    const waypointProgress = t * (WAYPOINTS.length - 1)
+    const localT = waypointProgress - waypointIndex
     
+    // Check if we're within docking zone (5% = 0.05)
+    const DOCKING_ZONE_WIDTH = 0.05
+    const isInDockingZone = localT >= (0.5 - DOCKING_ZONE_WIDTH) && localT <= (0.5 + DOCKING_ZONE_WIDTH)
     const currentWaypoint = WAYPOINTS[waypointIndex]
-    const nextWaypoint = WAYPOINTS[nextWaypointIndex]
+    const nextWaypoint = WAYPOINTS[Math.min(waypointIndex + 1, WAYPOINTS.length - 1)]
     
-    const localT = (t * (WAYPOINTS.length - 1)) - waypointIndex
+    if (isInDockingZone && currentWaypoint.section !== 'hero') {
+      // We're in a docking zone
+      if (!isDocking || currentDockingZone !== currentWaypoint.id) {
+        setIsDocking(true)
+        setCurrentDockingZone(currentWaypoint.id)
+        dockingStartProgress.current = smoothProgress.current
+      }
+    } else {
+      // Not in a docking zone
+      if (isDocking) {
+        setIsDocking(false)
+        setCurrentDockingZone(null)
+      }
+    }
+
     const clampedLocalT = THREE.MathUtils.clamp(localT, 0, 1)
 
     const targetPos = new THREE.Vector3().lerpVectors(

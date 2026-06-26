@@ -22,6 +22,10 @@ type JourneyContextValue = {
   achievementsActive: boolean
   setAchievementsActive: (active: boolean) => void
   scrollContainerRef: React.RefObject<HTMLElement | null>
+  isDocking: boolean
+  setIsDocking: (docking: boolean) => void
+  currentDockingZone: string | null
+  setCurrentDockingZone: (zone: string | null) => void
 }
 
 const JourneyContext = createContext<JourneyContextValue | null>(null)
@@ -32,6 +36,8 @@ export function JourneyProvider({ children }: { children: ReactNode }) {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [hudMode, setHudMode] = useState<HudMode>('Hero')
   const [achievementsActive, setAchievementsActive] = useState(false)
+  const [isDocking, setIsDocking] = useState(false)
+  const [currentDockingZone, setCurrentDockingZone] = useState<string | null>(null)
 
   const value = useMemo(
     () => ({
@@ -43,8 +49,12 @@ export function JourneyProvider({ children }: { children: ReactNode }) {
       achievementsActive,
       setAchievementsActive,
       scrollContainerRef,
+      isDocking,
+      setIsDocking,
+      currentDockingZone,
+      setCurrentDockingZone,
     }),
-    [scrollProgress, hudMode, achievementsActive],
+    [scrollProgress, hudMode, achievementsActive, isDocking, currentDockingZone],
   )
 
   return (

@@ -1,4 +1,4 @@
-import { Text, Float } from '@react-three/drei'
+import { Text, Float, Billboard } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
@@ -82,21 +82,23 @@ function NebulaRegion({ region }: { region: NebulaRegionData }) {
         />
       </mesh>
 
-      <Text
-        position={[0, 5, 0]}
-        fontSize={1.2}
-        color={region.color}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {region.label}
-        <meshBasicMaterial
+      <Billboard>
+        <Text
+          position={[0, 5, 0]}
+          fontSize={1.2}
           color={region.color}
-          transparent
-          opacity={0.9}
-          toneMapped={false}
-        />
-      </Text>
+          anchorX="center"
+          anchorY="middle"
+        >
+          {region.label}
+          <meshBasicMaterial
+            color={region.color}
+            transparent
+            opacity={0.9}
+            toneMapped={false}
+          />
+        </Text>
+      </Billboard>
 
       <pointLight
         ref={lightRef}
@@ -178,21 +180,23 @@ function OrbitingTechLabel({
           />
         </mesh>
 
-        <Text
-          position={[0, 0.9, 0]}
-          fontSize={0.4}
-          color={color}
-          anchorX="center"
-          anchorY="middle"
-        >
-          {label}
-          <meshBasicMaterial
+        <Billboard>
+          <Text
+            position={[0, 0.9, 0]}
+            fontSize={0.4}
             color={color}
-            transparent
-            opacity={0.85}
-            toneMapped={false}
-          />
-        </Text>
+            anchorX="center"
+            anchorY="middle"
+          >
+            {label}
+            <meshBasicMaterial
+              color={color}
+              transparent
+              opacity={0.85}
+              toneMapped={false}
+            />
+          </Text>
+        </Billboard>
       </group>
     </Float>
   )

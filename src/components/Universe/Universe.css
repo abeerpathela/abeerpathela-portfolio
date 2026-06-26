@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 0;
-  pointer-events: none;
+  /* Allow pointer events to reach canvas for 3D interactions */
 }
 
 .universe-layer canvas {

@@ -21,9 +21,11 @@
 .terminal-form__window {
   background: rgba(2, 2, 8, 0.92);
   border: 1px solid rgba(107, 255, 140, 0.25);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 0 30px rgba(107, 255, 140, 0.08);
+  box-shadow:
+    0 0 30px rgba(107, 255, 140, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .terminal-form__header {
@@ -88,16 +90,17 @@
   color: #c4ffd4;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(107, 255, 140, 0.15);
-  border-radius: 3px;
+  border-radius: 4px;
   outline: none;
   resize: vertical;
   pointer-events: auto;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .terminal-form__line input:focus,
 .terminal-form__line textarea:focus {
   border-color: rgba(107, 255, 140, 0.45);
-  box-shadow: 0 0 8px rgba(107, 255, 140, 0.12);
+  box-shadow: 0 0 12px rgba(107, 255, 140, 0.12);
 }
 
 .terminal-form__line input::placeholder,
@@ -113,19 +116,24 @@
 }
 
 .terminal-form__actions button {
-  padding: 0.45rem 0.85rem;
+  padding: 0.5rem 1rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: #020208;
   background: rgba(107, 255, 140, 0.85);
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
 }
 
 .terminal-form__actions button:hover:not(:disabled) {
   background: #6bff8c;
+  box-shadow: 0 0 16px rgba(107, 255, 140, 0.3);
+  transform: translateY(-1px);
 }
 
 .terminal-form__actions button:disabled {
@@ -144,6 +152,56 @@
 
 .terminal-form__status--err {
   color: #ff6b6b;
+}
+
+/* Success state */
+.terminal-form__success {
+  padding: 2rem;
+  text-align: center;
+}
+
+.terminal-form__success-icon {
+  font-size: 2.5rem;
+  color: #6bff8c;
+  text-shadow: 0 0 20px rgba(107, 255, 140, 0.5);
+  animation: success-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes success-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+.terminal-form__success-text {
+  margin: 1rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6bff8c;
+  letter-spacing: 0.1em;
+}
+
+.terminal-form__success-sub {
+  margin: 0.5rem 0 0;
+  font-size: 0.7rem;
+  color: rgba(107, 255, 140, 0.5);
+}
+
+/* Particle dissolution */
+.terminal-form__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.terminal-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #6bff8c;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(107, 255, 140, 0.6);
 }
 
 @media (max-width: 640px) {

@@ -1,16 +1,22 @@
 .resume-disk-label {
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.85rem;
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.18em;
-  color: #020208;
-  background: #c4d4ff;
+  color: #1a1400;
+  background: linear-gradient(135deg, #ffd700, #daa520);
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
+  text-transform: uppercase;
+  font-weight: 600;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
 .resume-disk-label:hover {
-  background: #f4f7ff;
+  background: linear-gradient(135deg, #ffed4a, #ffd700);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
 }

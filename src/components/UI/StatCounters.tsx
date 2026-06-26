@@ -1,5 +1,6 @@
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
+import { STATS } from '../../data/portfolio'
 import './StatCounters.css'
 
 type StatCountersProps = {
@@ -8,7 +9,7 @@ type StatCountersProps = {
 
 export function StatCounters({ active }: StatCountersProps) {
   const [visible, setVisible] = useState(false)
-  const [cgpa, setCgpa] = useState('0.0')
+  const [cgpa, setCgpa] = useState('0.00')
   const [leetcode, setLeetcode] = useState(0)
   const hasAnimated = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -23,23 +24,23 @@ export function StatCounters({ active }: StatCountersProps) {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        setCgpa('9.5')
-        setLeetcode(500)
+        setCgpa(STATS.cgpa.toFixed(2))
+        setLeetcode(STATS.leetcode)
       },
     })
 
     tl.to(cgpaProxy, {
-      value: 9.5,
-      duration: 2,
+      value: STATS.cgpa,
+      duration: 2.5,
       ease: 'power2.out',
-      onUpdate: () => setCgpa(cgpaProxy.value.toFixed(1)),
+      onUpdate: () => setCgpa(cgpaProxy.value.toFixed(2)),
     })
 
     tl.to(
       lcProxy,
       {
-        value: 500,
-        duration: 2.2,
+        value: STATS.leetcode,
+        duration: 2,
         ease: 'power2.out',
         onUpdate: () => setLeetcode(Math.round(lcProxy.value)),
       },
@@ -49,8 +50,8 @@ export function StatCounters({ active }: StatCountersProps) {
     if (containerRef.current) {
       gsap.fromTo(
         containerRef.current,
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+        { opacity: 0, y: 30, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'back.out(1.4)' },
       )
     }
 

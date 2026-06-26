@@ -23,7 +23,7 @@ export function Preloader() {
 
     gsap.to(overlayRef.current, {
       opacity: 0,
-      duration: 1,
+      duration: 1.2,
       ease: 'power2.inOut',
       onComplete: () => setMounted(false),
     })
@@ -34,13 +34,14 @@ export function Preloader() {
   return (
     <div ref={overlayRef} className="preloader" aria-live="polite" aria-busy={!isReady}>
       <div className="preloader__content">
-        <p className="preloader__label">Deep Space</p>
+        <p className="preloader__label">Initializing Starship...</p>
         <div className="preloader__track">
           <div ref={progressRef} className="preloader__bar" />
         </div>
         <p className="preloader__status">
-          {isReady ? 'Entering orbit…' : 'Calibrating systems…'}
+          {isReady ? 'Entering deep space…' : 'Calibrating navigation systems…'}
         </p>
+        <p className="preloader__percent">{Math.round(progress * 100)}%</p>
       </div>
     </div>
   )

@@ -16,10 +16,12 @@ export function Universe() {
           alpha: false,
           powerPreference: 'high-performance',
         }}
+        raycaster={{ params: { Points: { threshold: 0.1 } } }}
         onCreated={({ gl }) => {
           gl.setClearColor('#020208')
           markReady('canvas')
         }}
+        style={{ pointerEvents: 'auto' }}
       >
         <color attach="background" args={['#020208']} />
         <Suspense fallback={null}>

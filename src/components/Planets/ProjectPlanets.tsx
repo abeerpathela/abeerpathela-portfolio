@@ -1,17 +1,14 @@
-import { PROJECTS } from '../../data/projects'
-import { Planet } from './Planet'
+import { PROJECTS } from '../../data/portfolio'
+import { ProjectStation } from './ProjectStation'
 
 export function ProjectPlanets() {
   return (
     <group>
-      {PROJECTS.map((project) => (
-        <Planet
+      {PROJECTS.map((project, index) => (
+        <ProjectStation
           key={project.id}
-          title={project.title}
-          description={project.description}
-          color={project.color}
-          size={project.size}
-          position={project.position}
+          project={project}
+          index={index}
         />
       ))}
     </group>

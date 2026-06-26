@@ -1,0 +1,105 @@
+.station-card {
+  width: 280px;
+  padding: 1.1rem 1.25rem;
+  background: rgba(2, 2, 12, 0.88);
+  border: 1px solid rgba(107, 140, 255, 0.25);
+  border-radius: 8px;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 0 30px rgba(107, 140, 255, 0.08),
+    inset 0 0 20px rgba(107, 140, 255, 0.03);
+  transform: scale(0.95);
+  opacity: 0.85;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
+}
+
+.station-card--active {
+  transform: scale(1);
+  opacity: 1;
+  border-color: rgba(107, 140, 255, 0.5);
+  box-shadow:
+    0 0 40px rgba(107, 140, 255, 0.15),
+    inset 0 0 25px rgba(107, 140, 255, 0.05);
+}
+
+.station-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #e0e8ff;
+  text-shadow: 0 0 8px rgba(107, 140, 255, 0.4);
+}
+
+.station-card__desc {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(200, 212, 255, 0.65);
+}
+
+.station-card__tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.65rem;
+}
+
+.station-card__tag {
+  padding: 0.15rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(107, 200, 255, 0.9);
+  background: rgba(107, 140, 255, 0.12);
+  border: 1px solid rgba(107, 140, 255, 0.2);
+  border-radius: 3px;
+}
+
+.station-card__links {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.station-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #c4d4ff;
+  background: rgba(107, 140, 255, 0.15);
+  border: 1px solid rgba(107, 140, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+}
+
+.station-card__btn:hover {
+  background: rgba(107, 140, 255, 0.3);
+  border-color: rgba(107, 140, 255, 0.6);
+  color: #f4f7ff;
+  box-shadow: 0 0 12px rgba(107, 140, 255, 0.25);
+}
+
+.station-card__btn--live {
+  color: #6bffc8;
+  border-color: rgba(107, 255, 200, 0.3);
+  background: rgba(107, 255, 200, 0.1);
+}
+
+.station-card__btn--live:hover {
+  background: rgba(107, 255, 200, 0.25);
+  border-color: rgba(107, 255, 200, 0.6);
+  color: #f4f7ff;
+  box-shadow: 0 0 12px rgba(107, 255, 200, 0.25);
+}

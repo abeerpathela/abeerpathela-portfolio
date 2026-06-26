@@ -128,28 +128,38 @@ function SectorTitle({ z, title, subtitle }: { z: number; title: string; subtitl
 }
 
 function SafeImage({ url, ...props }: { url: string } & React.ComponentProps<typeof DreiImage>) {
-  const [failed, setFailed] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ok" | "failed">("loading");
   useEffect(() => {
     let cancelled = false;
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      url,
-      () => {},
-      undefined,
-      () => {
-        if (!cancelled) setFailed(true);
-      },
-    );
+    setStatus("loading");
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (!cancelled) setStatus("ok");
+    };
+    img.onerror = () => {
+      if (!cancelled) setStatus("failed");
+    };
+    img.src = url;
     return () => {
       cancelled = true;
     };
   }, [url]);
 
-  if (failed) {
+  const scale = (props as any).scale ?? [3, 2, 1];
+  const w = Array.isArray(scale) ? scale[0] : 3;
+  const h = Array.isArray(scale) ? scale[1] : 2;
+
+  if (status !== "ok") {
+    const isLoading = status === "loading";
     return (
-      <mesh {...(props as any)}>
-        <planeGeometry args={[(props as any).scale?.[0] ?? 3, (props as any).scale?.[1] ?? 2]} />
-        <meshBasicMaterial color="#0a2540" />
+      <mesh position={(props as any).position}>
+        <planeGeometry args={[w, h]} />
+        <meshBasicMaterial
+          color={isLoading ? "#0a2540" : "#08233a"}
+          transparent
+          opacity={0.85}
+        />
       </mesh>
     );
   }

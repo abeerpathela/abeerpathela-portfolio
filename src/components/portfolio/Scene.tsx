@@ -16,7 +16,29 @@ import {
 import * as THREE from "three";
 import { PORTFOLIO_DATA, STATION_SPACING } from "./data";
 
-const SECTOR_COUNT = PORTFOLIO_DATA.sectors.length; // 5
+/* ------------------------- Stations ------------------------- */
+// Each project is its own destination station, then the supporting sectors.
+type Station =
+  | { kind: "intro"; label: string }
+  | { kind: "project"; index: number; label: string }
+  | { kind: "participations"; label: string }
+  | { kind: "tech"; label: string }
+  | { kind: "achievements"; label: string }
+  | { kind: "contact"; label: string };
+
+const STATIONS: Station[] = [
+  { kind: "intro", label: "MISSION BRIEFING" },
+  ...PORTFOLIO_DATA.projects.map((p, i) => ({
+    kind: "project" as const,
+    index: i,
+    label: `PROJECT ${String(i + 1).padStart(2, "0")} // ${p.title.toUpperCase()}`,
+  })),
+  { kind: "participations", label: "PARTICIPATIONS GALLERY" },
+  { kind: "tech", label: "TECH GALAXY" },
+  { kind: "achievements", label: "ACHIEVEMENT CORE" },
+  { kind: "contact", label: "COMMS RELAY" },
+];
+const STATION_COUNT = STATIONS.length;
 
 interface SceneProps {
   onSectorChange: (index: number, label: string) => void;
@@ -38,7 +60,7 @@ export function Scene({ onSectorChange }: SceneProps) {
       camera={{ position: [0, 2, 8], fov: isMobile ? 75 : 45, near: 0.1, far: 1000 }}
     >
       <color attach="background" args={["#02040a"]} />
-      <fog attach="fog" args={["#02040a", 25, 80]} />
+      <fog attach="fog" args={["#02040a", 18, 55]} />
       <ambientLight intensity={0.35} />
       <pointLight position={[10, 10, 10]} intensity={1.2} color="#00e5ff" />
       <pointLight position={[-10, -5, -10]} intensity={0.8} color="#ff00aa" />
@@ -46,9 +68,9 @@ export function Scene({ onSectorChange }: SceneProps) {
       <Stars radius={120} depth={80} count={6000} factor={4} saturation={0} fade speed={0.5} />
 
       <Suspense fallback={null}>
-        <ScrollControls pages={SECTOR_COUNT + 0.5} damping={0.25}>
+        <ScrollControls pages={STATION_COUNT * 1.2} damping={0.22}>
           <CameraRig onSectorChange={onSectorChange} />
-          <SectorContent />
+          <StationsContent />
         </ScrollControls>
       </Suspense>
     </Canvas>
@@ -59,48 +81,69 @@ export function Scene({ onSectorChange }: SceneProps) {
 function CameraRig({ onSectorChange }: { onSectorChange: (i: number, label: string) => void }) {
   const scroll = useScroll();
   const { camera } = useThree();
-  const lastSector = useRef(-1);
+  const lastStation = useRef(-1);
   const tmp = useRef(new THREE.Vector3());
 
   useFrame((_, delta) => {
     const offset = scroll.offset; // 0..1
-    const totalDist = (SECTOR_COUNT - 1) * STATION_SPACING;
-
-    // "Dock" at each station: ease the offset so motion pauses near each integer step
-    const raw = offset * (SECTOR_COUNT - 1); // 0..(N-1)
-    const sectorIndex = Math.round(raw);
+    const raw = offset * (STATION_COUNT - 1); // 0..(N-1)
+    const stationIndex = Math.round(raw);
     const localT = raw - Math.floor(raw); // 0..1 between stations
-    // smoothstep for docking feel
-    const eased = localT * localT * (3 - 2 * localT);
-    const docked = Math.floor(raw) + eased;
+
+    // Docking curve: long pause at each station, quick transit between.
+    // Map localT (0..1) so the middle 40% does most of the movement.
+    const dock = (t: number) => {
+      const edge = 0.3;
+      if (t < edge) return 0;
+      if (t > 1 - edge) return 1;
+      const k = (t - edge) / (1 - 2 * edge);
+      return k * k * (3 - 2 * k);
+    };
+    const docked = Math.floor(raw) + dock(localT);
     const targetZ = -docked * STATION_SPACING;
 
     tmp.current.set(0, 1.5, targetZ + 9);
     camera.position.lerp(tmp.current, Math.min(1, delta * 4));
     camera.lookAt(0, 1.2, targetZ);
 
-    if (sectorIndex !== lastSector.current) {
-      lastSector.current = sectorIndex;
-      const clamped = Math.max(0, Math.min(SECTOR_COUNT - 1, sectorIndex));
-      onSectorChange(clamped, PORTFOLIO_DATA.sectors[clamped]);
+    if (stationIndex !== lastStation.current) {
+      lastStation.current = stationIndex;
+      const clamped = Math.max(0, Math.min(STATION_COUNT - 1, stationIndex));
+      onSectorChange(clamped, STATIONS[clamped].label);
     }
-
-    // prevent unused var warning
-    void totalDist;
   });
 
   return null;
 }
 
-/* ------------------------- Sector Layout ------------------------- */
-function SectorContent() {
+/* ------------------------- Station Layout ------------------------- */
+function StationsContent() {
   return (
     <>
-      <ProjectsSector z={0} />
-      <ParticipationsSector z={-STATION_SPACING} />
-      <TechSector z={-2 * STATION_SPACING} />
-      <AchievementsSector z={-3 * STATION_SPACING} />
-      <ContactSector z={-4 * STATION_SPACING} />
+      {STATIONS.map((station, i) => {
+        const z = -i * STATION_SPACING;
+        switch (station.kind) {
+          case "intro":
+            return <IntroStation key={i} z={z} />;
+          case "project":
+            return (
+              <ProjectStation
+                key={i}
+                z={z}
+                index={station.index}
+                total={PORTFOLIO_DATA.projects.length}
+              />
+            );
+          case "participations":
+            return <ParticipationsSector key={i} z={z} />;
+          case "tech":
+            return <TechSector key={i} z={z} />;
+          case "achievements":
+            return <AchievementsSector key={i} z={z} />;
+          case "contact":
+            return <ContactSector key={i} z={z} />;
+        }
+      })}
     </>
   );
 }

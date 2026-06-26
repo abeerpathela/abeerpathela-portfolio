@@ -17,13 +17,13 @@ export function StarField({ onReady }: StarFieldProps) {
 
   return (
     <Stars
-      radius={300}
-      depth={150}
-      count={12000}
-      factor={6}
-      saturation={0}
+      radius={500}
+      depth={250}
+      count={20000}
+      factor={7}
+      saturation={0.15}
       fade
-      speed={0.6}
+      speed={0.4}
     />
   )
 }

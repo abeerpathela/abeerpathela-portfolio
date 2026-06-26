@@ -1,15 +1,19 @@
 .scroll-layer {
-  position: relative;
-  z-index: 1;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  pointer-events: none;
+  height: 100%;
+  z-index: 5;
+  pointer-events: auto;
+  overflow: hidden;
 }
 
 .scroll-section {
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  min-height: 100svh;
+  height: 100vh;
   padding: 2rem;
   box-sizing: border-box;
 }

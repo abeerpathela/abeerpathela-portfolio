@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Preloader } from './components/Preloader/Preloader'
 import { ScrollContent } from './components/ScrollContent/ScrollContent'
 import { HUD } from './components/UI/HUD'
+import { NavigationMenu } from './components/UI/NavigationMenu'
 import { StatCounters } from './components/UI/StatCounters'
 import { TerminalForm } from './components/UI/TerminalForm'
 import { HeroPortal } from './components/Hero/HeroPortal'
@@ -37,6 +38,7 @@ function AppContent() {
       )}
       <TechShowcase />
       <HUD scrollProgress={scrollProgress} mode={hudMode} />
+      <NavigationMenu />
       <StatCounters active={achievementsActive} />
       <TerminalForm visible={hudMode === 'Contact'} />
       <ScrollContent />

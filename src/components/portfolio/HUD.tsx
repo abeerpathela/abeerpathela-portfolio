@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PORTFOLIO_DATA } from "./data";
+import { PORTFOLIO_DATA } from "../../data";
 
 interface HUDProps {
   currentSector: number;

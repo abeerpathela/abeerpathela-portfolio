@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { HUD } from "./HUD";
-import { PORTFOLIO_DATA } from "./data";
+import { PORTFOLIO_DATA } from "../../data";
 
 // 1 intro + 9 projects + participations + tech + achievements + contact = 14
 const TOTAL_STATIONS = 1 + PORTFOLIO_DATA.projects.length + 4;

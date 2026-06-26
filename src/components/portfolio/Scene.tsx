@@ -14,7 +14,7 @@ import {
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
-import { PORTFOLIO_DATA, STATION_SPACING } from "./data";
+import { PORTFOLIO_DATA, STATION_SPACING } from "../../data";
 import * as SiIcons from "react-icons/si";
 
 /* ------------------------- Stations ------------------------- */
@@ -214,8 +214,13 @@ function SafeImage({ url, ...props }: { url: string } & React.ComponentProps<typ
 /* ------------------------- Intro Station ------------------------- */
 function IntroStation({ z }: { z: number }) {
   const ringRef = useRef<THREE.Mesh>(null);
+  const scrollTextRef = useRef<any>(null);
   useFrame((s) => {
     if (ringRef.current) ringRef.current.rotation.z = s.clock.elapsedTime * 0.15;
+    if (scrollTextRef.current) {
+      const pulse = Math.sin(s.clock.elapsedTime * 1.5) * 0.15 + 0.85;
+      scrollTextRef.current.scale.set(pulse, pulse, pulse);
+    }
   });
   return (
     <group position={[0, 0, z]}>
@@ -234,9 +239,11 @@ function IntroStation({ z }: { z: number }) {
         <Text position={[0, -0.7, 0]} fontSize={0.28} color="#7df9ff" anchorX="center">
           CREATIVE ENGINEER · FULL-STACK · AI
         </Text>
-        <Text position={[0, -1.15, 0]} fontSize={0.22} color="#7df9ff" anchorX="center" maxWidth={8}>
-          Scroll to dock with each project · 9 missions ahead
-        </Text>
+        <group ref={scrollTextRef}>
+          <Text position={[0, -1.15, 0]} fontSize={0.35} color="#00e5ff" outlineWidth={0.03} outlineColor="#7df9ff" anchorX="center" maxWidth={8}>
+            Scroll to dock with each project · 9 missions ahead
+          </Text>
+        </group>
       </Billboard>
     </group>
   );
@@ -391,7 +398,7 @@ function ProjectStation({
                   ▸ GITHUB
                 </a>
               )}
-              {project.live && (
+              {project.live ? (
                 <a
                   href={project.live}
                   target="_blank"
@@ -400,6 +407,12 @@ function ProjectStation({
                 >
                   ▸ LIVE DEMO
                 </a>
+              ) : (
+                <span
+                  className="hud-border rounded-sm bg-background/40 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm text-primary/50 cursor-not-allowed"
+                >
+                  ▸ COMING SOON
+                </span>
               )}
             </div>
           </div>
@@ -645,45 +658,88 @@ function ContactTerminal() {
   };
 
   return (
-    <form
-      onSubmit={submit}
-      className="hud-border hud-mono w-[420px] max-w-[90vw] rounded-sm bg-background/85 p-5 text-primary backdrop-blur-md"
-      style={{ boxShadow: "0 0 40px oklch(0.82 0.18 195 / 0.4)" }}
-    >
-      <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-widest text-primary/70">
-        <span>▣ TERMINAL // pathelaabeer@gmail.com</span>
-        <span className="hud-blink">●</span>
-      </div>
-      <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; CALLSIGN</label>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
-      />
-      <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; FREQUENCY (EMAIL)</label>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
-      />
-      <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; MESSAGE PAYLOAD</label>
-      <textarea
-        value={msg}
-        onChange={(e) => setMsg(e.target.value)}
-        required
-        rows={3}
-        className="mb-4 w-full resize-none border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
-      />
-      <button
-        type="submit"
-        className="hud-border hud-text w-full rounded-sm bg-primary/15 px-3 py-2 text-xs font-bold transition hover:bg-primary/30"
+    <div className="flex flex-col items-center gap-4">
+      <form
+        onSubmit={submit}
+        className="hud-border hud-mono w-[420px] max-w-[90vw] rounded-sm bg-background/85 p-5 text-primary backdrop-blur-md"
+        style={{ boxShadow: "0 0 40px oklch(0.82 0.18 195 / 0.4)" }}
       >
-        ▲ TRANSMIT
-      </button>
-    </form>
+        <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-widest text-primary/70">
+          <span>▣ TERMINAL // pathelaabeer@gmail.com</span>
+          <span className="hud-blink">●</span>
+        </div>
+        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; CALLSIGN</label>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
+        />
+        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; FREQUENCY (EMAIL)</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
+        />
+        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; MESSAGE PAYLOAD</label>
+        <textarea
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          required
+          rows={3}
+          className="mb-4 w-full resize-none border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
+        />
+        <button
+          type="submit"
+          className="hud-border hud-text w-full rounded-sm bg-primary/15 px-3 py-2 text-xs font-bold transition hover:bg-primary/30"
+        >
+          ▲ TRANSMIT
+        </button>
+      </form>
+      
+      <div className="flex gap-3">
+        <a
+          href={PORTFOLIO_DATA.socials.github}
+          target="_blank"
+          rel="noreferrer"
+          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+        >
+          <SiIcons.SiGithub size={20} color="#7df9ff" />
+        </a>
+        <a
+          href={PORTFOLIO_DATA.socials.linkedin}
+          target="_blank"
+          rel="noreferrer"
+          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+        >
+          <SiIcons.SiLinkedin size={20} color="#7df9ff" />
+        </a>
+        <a
+          href={PORTFOLIO_DATA.socials.leetcode}
+          target="_blank"
+          rel="noreferrer"
+          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+        >
+          <SiIcons.SiLeetcode size={20} color="#7df9ff" />
+        </a>
+        <a
+          href={PORTFOLIO_DATA.socials.instagram}
+          target="_blank"
+          rel="noreferrer"
+          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+        >
+          <SiIcons.SiInstagram size={20} color="#7df9ff" />
+        </a>
+        <a
+          href={`mailto:${PORTFOLIO_DATA.socials.email}`}
+          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+        >
+          <SiIcons.SiGmail size={20} color="#7df9ff" />
+        </a>
+      </div>
+    </div>
   );
 }
 

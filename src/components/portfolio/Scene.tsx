@@ -498,13 +498,37 @@ function TechSector({ z }: { z: number }) {
     <group position={[0, 0, z]}>
       <SectorTitle z={0} title="TECH GALAXY" subtitle="STACK & TOOLING" />
       <group ref={groupRef}>
-        {items.map((label, i) => (
-          <Billboard key={label} position={positions[i]}>
-            <Text fontSize={0.32} color="#7df9ff" outlineWidth={0.01} outlineColor="#00e5ff">
-              {label}
-            </Text>
-          </Billboard>
-        ))}
+        {items.map((tech, i) => {
+          const IconCmp = (SiIcons as Record<string, React.ComponentType<{ color?: string; size?: number | string }>>)[tech.icon];
+          return (
+            <Billboard key={tech.name} position={positions[i]}>
+              <Html center transform distanceFactor={6} style={{ pointerEvents: "none" }}>
+                <div className="flex flex-col items-center gap-1 select-none">
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-xl border backdrop-blur-sm"
+                    style={{
+                      background: `radial-gradient(circle at 30% 30%, ${tech.color}33, transparent 70%), rgba(8,16,32,0.55)`,
+                      borderColor: `${tech.color}66`,
+                      boxShadow: `0 0 18px ${tech.color}55, inset 0 0 12px ${tech.color}22`,
+                    }}
+                  >
+                    {IconCmp ? (
+                      <IconCmp color={tech.color} size={30} />
+                    ) : (
+                      <span style={{ color: tech.color, fontSize: 12 }}>{tech.name[0]}</span>
+                    )}
+                  </div>
+                  <span
+                    className="hud-mono text-[9px] font-bold uppercase tracking-widest"
+                    style={{ color: tech.color, textShadow: `0 0 6px ${tech.color}` }}
+                  >
+                    {tech.name}
+                  </span>
+                </div>
+              </Html>
+            </Billboard>
+          );
+        })}
         {/* glowing core */}
         <Sphere args={[0.6, 32, 32]} position={[0, 1, -2]}>
           <meshBasicMaterial color="#00e5ff" transparent opacity={0.6} />

@@ -16,7 +16,29 @@ import {
 import * as THREE from "three";
 import { PORTFOLIO_DATA, STATION_SPACING } from "./data";
 
-const SECTOR_COUNT = PORTFOLIO_DATA.sectors.length; // 5
+/* ------------------------- Stations ------------------------- */
+// Each project is its own destination station, then the supporting sectors.
+type Station =
+  | { kind: "intro"; label: string }
+  | { kind: "project"; index: number; label: string }
+  | { kind: "participations"; label: string }
+  | { kind: "tech"; label: string }
+  | { kind: "achievements"; label: string }
+  | { kind: "contact"; label: string };
+
+const STATIONS: Station[] = [
+  { kind: "intro", label: "MISSION BRIEFING" },
+  ...PORTFOLIO_DATA.projects.map((p, i) => ({
+    kind: "project" as const,
+    index: i,
+    label: `PROJECT ${String(i + 1).padStart(2, "0")} // ${p.title.toUpperCase()}`,
+  })),
+  { kind: "participations", label: "PARTICIPATIONS GALLERY" },
+  { kind: "tech", label: "TECH GALAXY" },
+  { kind: "achievements", label: "ACHIEVEMENT CORE" },
+  { kind: "contact", label: "COMMS RELAY" },
+];
+const STATION_COUNT = STATIONS.length;
 
 interface SceneProps {
   onSectorChange: (index: number, label: string) => void;
@@ -38,7 +60,7 @@ export function Scene({ onSectorChange }: SceneProps) {
       camera={{ position: [0, 2, 8], fov: isMobile ? 75 : 45, near: 0.1, far: 1000 }}
     >
       <color attach="background" args={["#02040a"]} />
-      <fog attach="fog" args={["#02040a", 25, 80]} />
+      <fog attach="fog" args={["#02040a", 18, 55]} />
       <ambientLight intensity={0.35} />
       <pointLight position={[10, 10, 10]} intensity={1.2} color="#00e5ff" />
       <pointLight position={[-10, -5, -10]} intensity={0.8} color="#ff00aa" />
@@ -46,9 +68,9 @@ export function Scene({ onSectorChange }: SceneProps) {
       <Stars radius={120} depth={80} count={6000} factor={4} saturation={0} fade speed={0.5} />
 
       <Suspense fallback={null}>
-        <ScrollControls pages={SECTOR_COUNT + 0.5} damping={0.25}>
+        <ScrollControls pages={STATION_COUNT * 1.2} damping={0.22}>
           <CameraRig onSectorChange={onSectorChange} />
-          <SectorContent />
+          <StationsContent />
         </ScrollControls>
       </Suspense>
     </Canvas>
@@ -59,48 +81,69 @@ export function Scene({ onSectorChange }: SceneProps) {
 function CameraRig({ onSectorChange }: { onSectorChange: (i: number, label: string) => void }) {
   const scroll = useScroll();
   const { camera } = useThree();
-  const lastSector = useRef(-1);
+  const lastStation = useRef(-1);
   const tmp = useRef(new THREE.Vector3());
 
   useFrame((_, delta) => {
     const offset = scroll.offset; // 0..1
-    const totalDist = (SECTOR_COUNT - 1) * STATION_SPACING;
-
-    // "Dock" at each station: ease the offset so motion pauses near each integer step
-    const raw = offset * (SECTOR_COUNT - 1); // 0..(N-1)
-    const sectorIndex = Math.round(raw);
+    const raw = offset * (STATION_COUNT - 1); // 0..(N-1)
+    const stationIndex = Math.round(raw);
     const localT = raw - Math.floor(raw); // 0..1 between stations
-    // smoothstep for docking feel
-    const eased = localT * localT * (3 - 2 * localT);
-    const docked = Math.floor(raw) + eased;
+
+    // Docking curve: long pause at each station, quick transit between.
+    // Map localT (0..1) so the middle 40% does most of the movement.
+    const dock = (t: number) => {
+      const edge = 0.3;
+      if (t < edge) return 0;
+      if (t > 1 - edge) return 1;
+      const k = (t - edge) / (1 - 2 * edge);
+      return k * k * (3 - 2 * k);
+    };
+    const docked = Math.floor(raw) + dock(localT);
     const targetZ = -docked * STATION_SPACING;
 
     tmp.current.set(0, 1.5, targetZ + 9);
     camera.position.lerp(tmp.current, Math.min(1, delta * 4));
     camera.lookAt(0, 1.2, targetZ);
 
-    if (sectorIndex !== lastSector.current) {
-      lastSector.current = sectorIndex;
-      const clamped = Math.max(0, Math.min(SECTOR_COUNT - 1, sectorIndex));
-      onSectorChange(clamped, PORTFOLIO_DATA.sectors[clamped]);
+    if (stationIndex !== lastStation.current) {
+      lastStation.current = stationIndex;
+      const clamped = Math.max(0, Math.min(STATION_COUNT - 1, stationIndex));
+      onSectorChange(clamped, STATIONS[clamped].label);
     }
-
-    // prevent unused var warning
-    void totalDist;
   });
 
   return null;
 }
 
-/* ------------------------- Sector Layout ------------------------- */
-function SectorContent() {
+/* ------------------------- Station Layout ------------------------- */
+function StationsContent() {
   return (
     <>
-      <ProjectsSector z={0} />
-      <ParticipationsSector z={-STATION_SPACING} />
-      <TechSector z={-2 * STATION_SPACING} />
-      <AchievementsSector z={-3 * STATION_SPACING} />
-      <ContactSector z={-4 * STATION_SPACING} />
+      {STATIONS.map((station, i) => {
+        const z = -i * STATION_SPACING;
+        switch (station.kind) {
+          case "intro":
+            return <IntroStation key={i} z={z} />;
+          case "project":
+            return (
+              <ProjectStation
+                key={i}
+                z={z}
+                index={station.index}
+                total={PORTFOLIO_DATA.projects.length}
+              />
+            );
+          case "participations":
+            return <ParticipationsSector key={i} z={z} />;
+          case "tech":
+            return <TechSector key={i} z={z} />;
+          case "achievements":
+            return <AchievementsSector key={i} z={z} />;
+          case "contact":
+            return <ContactSector key={i} z={z} />;
+        }
+      })}
     </>
   );
 }
@@ -166,89 +209,182 @@ function SafeImage({ url, ...props }: { url: string } & React.ComponentProps<typ
   return <DreiImage url={url} {...props} />;
 }
 
-/* ------------------------- Sector 1: Projects (9 planets) ------------------------- */
-function ProjectsSector({ z }: { z: number }) {
-  const radius = 7;
+/* ------------------------- Intro Station ------------------------- */
+function IntroStation({ z }: { z: number }) {
+  const ringRef = useRef<THREE.Mesh>(null);
+  useFrame((s) => {
+    if (ringRef.current) ringRef.current.rotation.z = s.clock.elapsedTime * 0.15;
+  });
   return (
     <group position={[0, 0, z]}>
-      <SectorTitle z={0} title="PROJECTS NEBULA" subtitle="9 ACTIVE BUILDS" />
-      {PORTFOLIO_DATA.projects.map((p, i) => {
-        const angle = (i / PORTFOLIO_DATA.projects.length) * Math.PI * 2;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * 2.5 + 1;
-        const localZ = Math.sin(angle) * radius * 0.5 - 4;
-        return <ProjectPlanet key={p.title} project={p} position={[x, y, localZ]} index={i} />;
-      })}
+      <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.4}>
+        <Sphere args={[1.1, 48, 48]} position={[0, 1.3, -2]}>
+          <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={0.8} roughness={0.2} />
+        </Sphere>
+        <Torus ref={ringRef} args={[2, 0.03, 16, 80]} position={[0, 1.3, -2]} rotation={[Math.PI / 2.4, 0, 0]}>
+          <meshBasicMaterial color="#00e5ff" />
+        </Torus>
+      </Float>
+      <Billboard position={[0, 3.4, -1]}>
+        <Text fontSize={0.9} color="#7df9ff" outlineWidth={0.02} outlineColor="#00e5ff" anchorX="center">
+          ABEER PATHELA
+        </Text>
+        <Text position={[0, -0.7, 0]} fontSize={0.28} color="#7df9ff" anchorX="center">
+          CREATIVE ENGINEER · FULL-STACK · AI
+        </Text>
+        <Text position={[0, -1.15, 0]} fontSize={0.22} color="#7df9ff" anchorX="center" maxWidth={8}>
+          Scroll to dock with each project · 9 missions ahead
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-function ProjectPlanet({
-  project,
-  position,
+/* ------------------------- Project Station (one per project) ------------------------- */
+function ProjectStation({
+  z,
   index,
+  total,
 }: {
-  project: (typeof PORTFOLIO_DATA.projects)[number];
-  position: [number, number, number];
+  z: number;
   index: number;
+  total: number;
 }) {
+  const project = PORTFOLIO_DATA.projects[index];
   const planetRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
   const color = useMemo(
-    () => new THREE.Color().setHSL((index / 9) * 0.8 + 0.5, 0.7, 0.55),
-    [index],
+    () => new THREE.Color().setHSL((index / total) * 0.8 + 0.5, 0.7, 0.55),
+    [index, total],
   );
 
   useFrame((state) => {
-    if (planetRef.current) {
-      planetRef.current.rotation.y = state.clock.elapsedTime * 0.3;
-    }
+    if (planetRef.current) planetRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+    if (ringRef.current) ringRef.current.rotation.z = state.clock.elapsedTime * 0.2;
   });
 
+  // Alternate the planet to opposite sides for visual rhythm.
+  const planetSide = index % 2 === 0 ? -3.6 : 3.6;
+
   return (
-    <group position={position}>
-      <Float speed={1.4} rotationIntensity={0.2} floatIntensity={0.5}>
-        <Sphere ref={planetRef} args={[0.7, 32, 32]}>
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} roughness={0.4} />
-        </Sphere>
-        <Torus args={[1.1, 0.02, 16, 64]} rotation={[Math.PI / 2.3, 0, 0]}>
-          <meshBasicMaterial color={color} transparent opacity={0.5} />
-        </Torus>
+    <group position={[0, 0, z]}>
+      {/* Station marker badge */}
+      <Billboard position={[0, 4.3, 0]}>
+        <Text fontSize={0.22} color="#7df9ff" anchorX="center" outlineWidth={0.005} outlineColor="#00e5ff">
+          {`▣ PROJECT ${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
+        </Text>
+      </Billboard>
 
-        <Billboard position={[0, 2, 0]}>
-          <SafeImage
-            url={project.img}
-            scale={[3.2, 2, 1] as any}
-            transparent
-            // @ts-expect-error drei Image extras
-            anisotropy={16}
-          />
-          <mesh position={[0, 0, -0.01]}>
-            <planeGeometry args={[3.4, 2.2]} />
-            <meshBasicMaterial color="#00e5ff" transparent opacity={0.15} />
-          </mesh>
+      {/* Planet on one side */}
+      <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.4}>
+        <group position={[planetSide, 1.4, -2.5]}>
+          <Sphere ref={planetRef} args={[1.1, 48, 48]}>
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={0.5}
+              roughness={0.35}
+              metalness={0.2}
+            />
+          </Sphere>
+          <Torus ref={ringRef} args={[1.8, 0.025, 16, 80]} rotation={[Math.PI / 2.3, 0, 0]}>
+            <meshBasicMaterial color={color} transparent opacity={0.7} />
+          </Torus>
+          <Sphere args={[1.5, 32, 32]}>
+            <meshBasicMaterial color={color} transparent opacity={0.08} />
+          </Sphere>
+        </group>
+      </Float>
 
-          <Text position={[0, -1.35, 0.01]} fontSize={0.28} color="#7df9ff" anchorX="center">
-            {project.title.toUpperCase()}
-          </Text>
-          <Text position={[0, -1.7, 0.01]} fontSize={0.18} color="#7df9ff" anchorX="center" maxWidth={3}>
-            {project.desc}
-          </Text>
+      {/* Holographic dossier */}
+      <Billboard position={[0, 1.4, -1]}>
+        {/* Holo frame */}
+        <mesh position={[0, 0, -0.02]}>
+          <planeGeometry args={[5.6, 4]} />
+          <meshBasicMaterial color="#001821" transparent opacity={0.7} />
+        </mesh>
+        <mesh position={[0, 0, -0.015]}>
+          <planeGeometry args={[5.8, 4.2]} />
+          <meshBasicMaterial color={color} transparent opacity={0.18} />
+        </mesh>
 
-          <Html
-            position={[0, -2.2, 0.01]}
-            center
-            transform
-            distanceFactor={8}
-            occlude={false}
-            style={{ pointerEvents: "auto" }}
-          >
-            <div className="flex gap-1.5 hud-mono">
+        {/* Top label strip */}
+        <Text
+          position={[-2.6, 1.78, 0.02]}
+          fontSize={0.14}
+          color="#7df9ff"
+          anchorX="left"
+        >
+          ▸ DOSSIER // CASE FILE
+        </Text>
+        <Text
+          position={[2.6, 1.78, 0.02]}
+          fontSize={0.14}
+          color="#7df9ff"
+          anchorX="right"
+        >
+          STATUS: ONLINE ●
+        </Text>
+
+        {/* Project image */}
+        <SafeImage
+          url={project.img}
+          scale={[5.2, 2.4, 1] as any}
+          position={[0, 0.55, 0.02]}
+          transparent
+          // @ts-expect-error drei Image extras
+          anisotropy={16}
+        />
+
+        {/* Title + desc */}
+        <Text
+          position={[0, -0.95, 0.02]}
+          fontSize={0.42}
+          color="#7df9ff"
+          anchorX="center"
+          outlineWidth={0.01}
+          outlineColor="#00e5ff"
+          maxWidth={5}
+        >
+          {project.title.toUpperCase()}
+        </Text>
+        <Text
+          position={[0, -1.45, 0.02]}
+          fontSize={0.22}
+          color="#a5e9ff"
+          anchorX="center"
+          maxWidth={5}
+        >
+          {project.desc}
+        </Text>
+
+        {/* Tech chips + action buttons as HTML overlay */}
+        <Html
+          position={[0, -1.85, 0.05]}
+          center
+          transform
+          distanceFactor={5}
+          occlude={false}
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="flex w-[440px] max-w-[88vw] flex-col items-center gap-2">
+            <div className="flex flex-wrap justify-center gap-1.5 hud-mono">
+              {project.tech.map((t) => (
+                <span
+                  key={t}
+                  className="hud-border rounded-sm bg-background/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur-sm"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2 hud-mono">
               {project.github && (
                 <a
                   href={project.github}
                   target="_blank"
                   rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm transition hover:bg-primary/20"
+                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
                 >
                   ▸ GITHUB
                 </a>
@@ -258,15 +394,15 @@ function ProjectPlanet({
                   href={project.live}
                   target="_blank"
                   rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm transition hover:bg-primary/20"
+                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
                 >
-                  ▸ LIVE
+                  ▸ LIVE DEMO
                 </a>
               )}
             </div>
-          </Html>
-        </Billboard>
-      </Float>
+          </div>
+        </Html>
+      </Billboard>
     </group>
   );
 }

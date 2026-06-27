@@ -111,14 +111,14 @@ function useStationOpacity(stationIndex: number) {
   useFrame((_, delta) => {
     const raw = scroll.offset * (STATION_COUNT - 1);
     const dist = Math.abs(raw - stationIndex);
-    const target = dist < 0.3 ? 1 - THREE.MathUtils.smoothstep(0.02, 0.3, dist) : 0;
-    smoothed.current = THREE.MathUtils.damp(smoothed.current, target, 14, delta);
-    if (Math.abs(smoothed.current - opacity) > 0.005) {
+    const target = dist < 0.4 ? 1 - THREE.MathUtils.smoothstep(0.02, 0.4, dist) : 0;
+    smoothed.current = THREE.MathUtils.damp(smoothed.current, target, 8, delta);
+    if (Math.abs(smoothed.current - opacity) > 0.001) {
       setOpacity(smoothed.current);
     }
   });
 
-  return { opacity, active: opacity > 0.04 };
+  return { opacity, active: opacity > 0.02 };
 }
 
 interface SceneProps {
@@ -150,7 +150,7 @@ export function Scene({ onSectorChange }: SceneProps) {
       <Stars radius={120} depth={80} count={6000} factor={4} saturation={0.15} fade speed={0.5} />
 
       <Suspense fallback={null}>
-        <ScrollControls pages={STATION_COUNT} damping={0.45} maxSpeed={1.5}>
+        <ScrollControls pages={STATION_COUNT} damping={0.35} maxSpeed={2.5}>
           <CameraRig onSectorChange={onSectorChange} />
           <StationsContent />
         </ScrollControls>
@@ -174,7 +174,7 @@ function CameraRig({ onSectorChange }: { onSectorChange: (i: number, label: stri
 
     // Brief dwell at each station so every sector gets a clear stop.
     const dock = (t: number) => {
-      const hold = 0.1;
+      const hold = 0.08;
       if (t < hold) return 0;
       if (t > 1 - hold) return 1;
       const k = (t - hold) / (1 - 2 * hold);
@@ -184,9 +184,9 @@ function CameraRig({ onSectorChange }: { onSectorChange: (i: number, label: stri
     const targetZ = -docked * STATION_SPACING;
 
     tmp.current.set(0, 1.55, targetZ + 9);
-    smoothPos.current.x = THREE.MathUtils.damp(smoothPos.current.x, tmp.current.x, 2.6, delta);
-    smoothPos.current.y = THREE.MathUtils.damp(smoothPos.current.y, tmp.current.y, 2.6, delta);
-    smoothPos.current.z = THREE.MathUtils.damp(smoothPos.current.z, tmp.current.z, 2.6, delta);
+    smoothPos.current.x = THREE.MathUtils.damp(smoothPos.current.x, tmp.current.x, 5, delta);
+    smoothPos.current.y = THREE.MathUtils.damp(smoothPos.current.y, tmp.current.y, 5, delta);
+    smoothPos.current.z = THREE.MathUtils.damp(smoothPos.current.z, tmp.current.z, 5, delta);
     camera.position.copy(smoothPos.current);
     camera.lookAt(0, 1.35, targetZ);
 

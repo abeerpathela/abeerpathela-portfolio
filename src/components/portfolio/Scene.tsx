@@ -1,5 +1,6 @@
-import { Suspense, useMemo, useRef, useState, useEffect } from "react";
+import { Suspense, useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import emailjs from "@emailjs/browser";
 import {
   ScrollControls,
   useScroll,
@@ -15,7 +16,8 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { PORTFOLIO_DATA, STATION_SPACING } from "../../data";
-import * as SiIcons from "react-icons/si";
+import { SiGithub, SiInstagram } from "react-icons/si";
+import { TbBrandLinkedin } from "react-icons/tb";
 
 /* ------------------------- Stations ------------------------- */
 // Each project is its own destination station, then the supporting sectors.
@@ -211,10 +213,115 @@ function SafeImage({ url, ...props }: { url: string } & React.ComponentProps<typ
   return <DreiImage url={url} {...props} />;
 }
 
-/* ------------------------- Intro Station ------------------------- */
+/* ------------------------- 3D HUD helpers (no Html — avoids transform collapse at origin) ------------------------- */
+function ProjectTechBadges({ tech, y = -1.72 }: { tech: string[]; y?: number }) {
+  const xs = useMemo(() => {
+    const gap = 1.05;
+    const span = (tech.length - 1) * gap;
+    return tech.map((_, i) => -span / 2 + i * gap);
+  }, [tech]);
+
+  return (
+    <>
+      {tech.map((t, i) => (
+        <Text
+          key={t}
+          position={[xs[i], y, 0.06]}
+          fontSize={0.1}
+          color="#7df9ff"
+          anchorX="center"
+          outlineWidth={0.004}
+          outlineColor="#00e5ff"
+        >
+          {t.toUpperCase()}
+        </Text>
+      ))}
+    </>
+  );
+}
+
+function HudButton3D({
+  label,
+  position,
+  onClick,
+  disabled = false,
+}: {
+  label: string;
+  position: [number, number, number];
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <group position={position}>
+      <mesh
+        onClick={
+          disabled
+            ? undefined
+            : (e) => {
+                e.stopPropagation();
+                onClick?.();
+              }
+        }
+        onPointerOver={() => {
+          if (!disabled) document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "auto";
+        }}
+      >
+        <planeGeometry args={[1.45, 0.36]} />
+        <meshBasicMaterial color={disabled ? "#041018" : "#001821"} transparent opacity={disabled ? 0.5 : 0.85} />
+      </mesh>
+      <Text
+        position={[0, 0, 0.02]}
+        fontSize={0.13}
+        color={disabled ? "#7df9ff88" : "#7df9ff"}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+}
+
+function ProjectDossierActions({
+  github,
+  live,
+  tech,
+}: {
+  github: string;
+  live: string;
+  tech: string[];
+}) {
+  return (
+    <>
+      <ProjectTechBadges tech={tech} />
+      {github && (
+        <HudButton3D
+          label="▸ GITHUB"
+          position={[-0.9, -2.05, 0.06]}
+          onClick={() => window.open(github, "_blank", "noopener,noreferrer")}
+        />
+      )}
+      {live ? (
+        <HudButton3D
+          label="▸ LIVE DEMO"
+          position={[0.9, -2.05, 0.06]}
+          onClick={() => window.open(live, "_blank", "noopener,noreferrer")}
+        />
+      ) : (
+        <HudButton3D label="▸ COMING SOON" position={[0.9, -2.05, 0.06]} disabled />
+      )}
+    </>
+  );
+}
+
+/* ------------------------- Intro Station (hero planet only — no project UI) ------------------------- */
 function IntroStation({ z }: { z: number }) {
+  const { hero } = PORTFOLIO_DATA;
   const ringRef = useRef<THREE.Mesh>(null);
-  const scrollTextRef = useRef<any>(null);
+  const scrollTextRef = useRef<THREE.Group>(null);
   useFrame((s) => {
     if (ringRef.current) ringRef.current.rotation.z = s.clock.elapsedTime * 0.15;
     if (scrollTextRef.current) {
@@ -225,23 +332,37 @@ function IntroStation({ z }: { z: number }) {
   return (
     <group position={[0, 0, z]}>
       <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.4}>
-        <Sphere args={[1.1, 48, 48]} position={[0, 1.3, -2]}>
-          <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={0.8} roughness={0.2} />
-        </Sphere>
-        <Torus ref={ringRef} args={[2, 0.03, 16, 80]} position={[0, 1.3, -2]} rotation={[Math.PI / 2.4, 0, 0]}>
-          <meshBasicMaterial color="#00e5ff" />
-        </Torus>
+        <group position={[0, 1.3, -2]}>
+          <Sphere args={[1.1, 48, 48]}>
+            <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={0.8} roughness={0.2} />
+          </Sphere>
+          <Torus ref={ringRef} args={[2, 0.03, 16, 80]} rotation={[Math.PI / 2.4, 0, 0]}>
+            <meshBasicMaterial color="#00e5ff" />
+          </Torus>
+          <Sphere args={[1.5, 32, 32]}>
+            <meshBasicMaterial color="#00e5ff" transparent opacity={0.08} />
+          </Sphere>
+        </group>
       </Float>
       <Billboard position={[0, 3.4, -1]}>
         <Text fontSize={0.9} color="#7df9ff" outlineWidth={0.02} outlineColor="#00e5ff" anchorX="center">
-          ABEER PATHELA
+          {hero.name.toUpperCase()}
         </Text>
         <Text position={[0, -0.7, 0]} fontSize={0.28} color="#7df9ff" anchorX="center">
-          CREATIVE ENGINEER · FULL-STACK · AI
+          {hero.title.toUpperCase()}
         </Text>
         <group ref={scrollTextRef}>
-          <Text position={[0, -1.15, 0]} fontSize={0.35} color="#00e5ff" outlineWidth={0.03} outlineColor="#7df9ff" anchorX="center" maxWidth={8}>
-            Scroll to dock with each project · 9 missions ahead
+          <Text
+            position={[0, -1.15, 0]}
+            fontSize={0.48}
+            color="#ffffff"
+            fillOpacity={1}
+            outlineWidth={0.08}
+            outlineColor="#003344"
+            anchorX="center"
+            maxWidth={8}
+          >
+            {hero.scrollText}
           </Text>
         </group>
       </Billboard>
@@ -284,7 +405,7 @@ function ProjectStation({
         </Text>
       </Billboard>
 
-      {/* Planet on one side */}
+      {/* Decorative planet — mesh, rings, and glow only */}
       <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.4}>
         <group position={[planetSide, 1.4, -2.5]}>
           <Sphere ref={planetRef} args={[1.1, 48, 48]}>
@@ -305,119 +426,72 @@ function ProjectStation({
         </group>
       </Float>
 
-      {/* Holographic dossier */}
-      <Billboard position={[0, 1.4, -1]}>
-        {/* Holo frame */}
-        <mesh position={[0, 0, -0.02]}>
-          <planeGeometry args={[5.6, 4]} />
-          <meshBasicMaterial color="#001821" transparent opacity={0.7} />
-        </mesh>
-        <mesh position={[0, 0, -0.015]}>
-          <planeGeometry args={[5.8, 4.2]} />
-          <meshBasicMaterial color={color} transparent opacity={0.18} />
-        </mesh>
+      {/* Holographic dossier — 3D UI parented to this station group */}
+      <group position={[0, 1.4, -1]}>
+        <Billboard>
+          {/* Holo frame */}
+          <mesh position={[0, 0, -0.02]}>
+            <planeGeometry args={[5.6, 4]} />
+            <meshBasicMaterial color="#001821" transparent opacity={0.7} />
+          </mesh>
+          <mesh position={[0, 0, -0.015]}>
+            <planeGeometry args={[5.8, 4.2]} />
+            <meshBasicMaterial color={color} transparent opacity={0.18} />
+          </mesh>
 
-        {/* Top label strip */}
-        <Text
-          position={[-2.6, 1.78, 0.02]}
-          fontSize={0.14}
-          color="#7df9ff"
-          anchorX="left"
-        >
-          ▸ DOSSIER // CASE FILE
-        </Text>
-        <Text
-          position={[2.6, 1.78, 0.02]}
-          fontSize={0.14}
-          color="#7df9ff"
-          anchorX="right"
-        >
-          STATUS: ONLINE ●
-        </Text>
+          {/* Top label strip */}
+          <Text
+            position={[-2.6, 1.78, 0.02]}
+            fontSize={0.14}
+            color="#7df9ff"
+            anchorX="left"
+          >
+            ▸ DOSSIER // CASE FILE
+          </Text>
+          <Text
+            position={[2.6, 1.78, 0.02]}
+            fontSize={0.14}
+            color="#7df9ff"
+            anchorX="right"
+          >
+            STATUS: ONLINE ●
+          </Text>
 
-        {/* Project image */}
-        <SafeImage
-          url={project.img}
-          scale={[5.2, 2.4, 1] as any}
-          position={[0, 0.55, 0.02]}
-          transparent
-          // @ts-expect-error drei Image extras
-          anisotropy={16}
-        />
+          {/* Project image */}
+          <SafeImage
+            url={project.img}
+            scale={[5.2, 2.4, 1] as any}
+            position={[0, 0.55, 0.02]}
+            transparent
+            // @ts-expect-error drei Image extras
+            anisotropy={16}
+          />
 
-        {/* Title + desc */}
-        <Text
-          position={[0, -0.95, 0.02]}
-          fontSize={0.42}
-          color="#7df9ff"
-          anchorX="center"
-          outlineWidth={0.01}
-          outlineColor="#00e5ff"
-          maxWidth={5}
-        >
-          {project.title.toUpperCase()}
-        </Text>
-        <Text
-          position={[0, -1.45, 0.02]}
-          fontSize={0.22}
-          color="#a5e9ff"
-          anchorX="center"
-          maxWidth={5}
-        >
-          {project.desc}
-        </Text>
+          {/* Title + desc */}
+          <Text
+            position={[0, -0.95, 0.02]}
+            fontSize={0.42}
+            color="#7df9ff"
+            anchorX="center"
+            outlineWidth={0.01}
+            outlineColor="#00e5ff"
+            maxWidth={5}
+          >
+            {project.title.toUpperCase()}
+          </Text>
+          <Text
+            position={[0, -1.45, 0.02]}
+            fontSize={0.22}
+            color="#a5e9ff"
+            anchorX="center"
+            maxWidth={5}
+          >
+            {project.desc}
+          </Text>
 
-        {/* Tech chips + action buttons as HTML overlay */}
-        <Html
-          position={[0, -1.85, 0.05]}
-          center
-          transform
-          distanceFactor={5}
-          occlude={false}
-          style={{ pointerEvents: "auto" }}
-        >
-          <div className="flex w-[440px] max-w-[88vw] flex-col items-center gap-2">
-            <div className="flex flex-wrap justify-center gap-1.5 hud-mono">
-              {project.tech.map((t) => (
-                <span
-                  key={t}
-                  className="hud-border rounded-sm bg-background/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur-sm"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2 hud-mono">
-              {project.github && (
-                <a
-                  href={project.github}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
-                >
-                  ▸ GITHUB
-                </a>
-              )}
-              {project.live ? (
-                <a
-                  href={project.live}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hud-border hud-text rounded-sm bg-background/80 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm transition hover:bg-primary/25"
-                >
-                  ▸ LIVE DEMO
-                </a>
-              ) : (
-                <span
-                  className="hud-border rounded-sm bg-background/40 px-3 py-1.5 text-[11px] font-bold backdrop-blur-sm text-primary/50 cursor-not-allowed"
-                >
-                  ▸ COMING SOON
-                </span>
-              )}
-            </div>
-          </div>
-        </Html>
-      </Billboard>
+          <ProjectDossierActions github={project.github} live={project.live} tech={project.tech} />
+        </Billboard>
+      </group>
     </group>
   );
 }
@@ -448,35 +522,43 @@ function ParticipationsSector({ z }: { z: number }) {
           const angle = (i / items.length) * Math.PI * 2;
           const x = Math.cos(angle) * radius;
           const zL = Math.sin(angle) * radius;
+          const openLinkedIn = () => window.open(p.link, "_blank", "noopener,noreferrer");
           return (
-            <Billboard key={p.title} position={[x, 0, zL]}>
-              <SafeImage
-                url={p.img}
-                scale={[2.6, 1.7, 1] as any}
-                transparent
-                // @ts-expect-error drei Image extras
-                anisotropy={16}
-              />
-              <Text position={[0, -1.1, 0.01]} fontSize={0.22} color="#7df9ff" anchorX="center">
-                {p.title.toUpperCase()}
-              </Text>
-              <Html
-                position={[0, -1.55, 0.01]}
-                center
-                transform
-                distanceFactor={8}
-                style={{ pointerEvents: "auto" }}
-              >
-                <a
-                  href={p.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hud-border hud-text hud-mono rounded-sm bg-background/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm transition hover:bg-primary/20"
+            <group key={p.title} position={[x, 0, zL]}>
+              <Billboard>
+                <SafeImage
+                  url={p.img}
+                  scale={[2.6, 1.7, 1] as any}
+                  transparent
+                  // @ts-expect-error drei Image extras
+                  anisotropy={16}
+                />
+                <mesh
+                  position={[0, 0, 0.03]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLinkedIn();
+                  }}
+                  onPointerOver={() => {
+                    document.body.style.cursor = "pointer";
+                  }}
+                  onPointerOut={() => {
+                    document.body.style.cursor = "auto";
+                  }}
                 >
-                  ▸ LINKEDIN
-                </a>
-              </Html>
-            </Billboard>
+                  <planeGeometry args={[2.6, 1.7]} />
+                  <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+                </mesh>
+                <Text position={[0, -1.1, 0.01]} fontSize={0.22} color="#7df9ff" anchorX="center">
+                  {p.title.toUpperCase()}
+                </Text>
+                <HudButton3D
+                  label="▸ LINKEDIN"
+                  position={[0, -1.55, 0.02]}
+                  onClick={openLinkedIn}
+                />
+              </Billboard>
+            </group>
           );
         })}
       </group>
@@ -484,68 +566,89 @@ function ParticipationsSector({ z }: { z: number }) {
   );
 }
 
-/* ------------------------- Sector 3: Tech Galaxy ------------------------- */
+/* ------------------------- Sector 3: Tech Galaxy (orbiting constellation) ------------------------- */
+type TechItem = (typeof PORTFOLIO_DATA.techStack)[number];
+
+function TechOrbitIcon({
+  tech,
+  index,
+  total,
+}: {
+  tech: TechItem;
+  index: number;
+  total: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const color = useMemo(() => new THREE.Color(tech.color), [tech.color]);
+  const orbit = useMemo(() => {
+    const layer = index % 3;
+    return {
+      radius: 2.2 + layer * 1.4,
+      speed: 0.12 + (index % 5) * 0.035,
+      phase: (index / total) * Math.PI * 2,
+      yAmp: 0.35 + layer * 0.15,
+      zAmp: 0.55 + layer * 0.2,
+      tilt: 0.25 + (index % 4) * 0.12,
+    };
+  }, [index, total]);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime * orbit.speed + orbit.phase;
+    groupRef.current.position.set(
+      Math.cos(t) * orbit.radius,
+      Math.sin(t * 0.65 + orbit.tilt) * orbit.yAmp,
+      Math.sin(t) * orbit.radius * orbit.zAmp,
+    );
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Billboard>
+        <mesh>
+          <planeGeometry args={[0.72, 0.72]} />
+          <meshBasicMaterial color={color} transparent opacity={0.35} />
+        </mesh>
+        <mesh position={[0, 0, 0.01]}>
+          <planeGeometry args={[0.76, 0.76]} />
+          <meshBasicMaterial color={color} transparent opacity={0.12} wireframe />
+        </mesh>
+        <Text position={[0, 0, 0.02]} fontSize={0.18} color={tech.color} anchorX="center" anchorY="middle">
+          {tech.name.slice(0, 2).toUpperCase()}
+        </Text>
+        <Text position={[0, -0.58, 0.02]} fontSize={0.11} color={tech.color} anchorX="center">
+          {tech.name.toUpperCase()}
+        </Text>
+      </Billboard>
+    </group>
+  );
+}
+
 function TechSector({ z }: { z: number }) {
   const items = PORTFOLIO_DATA.techStack;
-  const positions = useMemo(() => {
-    return items.map((_, i) => {
-      const phi = Math.acos(-1 + (2 * i) / items.length);
-      const theta = Math.sqrt(items.length * Math.PI) * phi;
-      const r = 4 + Math.random() * 1.5;
-      return [
-        r * Math.cos(theta) * Math.sin(phi),
-        r * Math.sin(theta) * Math.sin(phi) + 1,
-        r * Math.cos(phi) - 2,
-      ] as [number, number, number];
-    });
-  }, [items.length]);
+  const coreRef = useRef<THREE.Mesh>(null);
 
-  const groupRef = useRef<THREE.Group>(null);
   useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1;
-      groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.15;
+    if (coreRef.current) {
+      coreRef.current.rotation.y = state.clock.elapsedTime * 0.25;
+      const pulse = 0.55 + Math.sin(state.clock.elapsedTime * 1.2) * 0.15;
+      (coreRef.current.material as THREE.MeshBasicMaterial).opacity = pulse;
     }
   });
 
   return (
     <group position={[0, 0, z]}>
       <SectorTitle z={0} title="TECH GALAXY" subtitle="STACK & TOOLING" />
-      <group ref={groupRef}>
-        {items.map((tech, i) => {
-          const IconCmp = (SiIcons as Record<string, React.ComponentType<{ color?: string; size?: number | string }>>)[tech.icon];
-          return (
-            <Billboard key={tech.name} position={positions[i]}>
-              <Html center transform distanceFactor={6} style={{ pointerEvents: "none" }}>
-                <div className="flex flex-col items-center gap-1 select-none">
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-xl border backdrop-blur-sm"
-                    style={{
-                      background: `radial-gradient(circle at 30% 30%, ${tech.color}33, transparent 70%), rgba(8,16,32,0.55)`,
-                      borderColor: `${tech.color}66`,
-                      boxShadow: `0 0 18px ${tech.color}55, inset 0 0 12px ${tech.color}22`,
-                    }}
-                  >
-                    {IconCmp ? (
-                      <IconCmp color={tech.color} size={30} />
-                    ) : (
-                      <span style={{ color: tech.color, fontSize: 12 }}>{tech.name[0]}</span>
-                    )}
-                  </div>
-                  <span
-                    className="hud-mono text-[9px] font-bold uppercase tracking-widest"
-                    style={{ color: tech.color, textShadow: `0 0 6px ${tech.color}` }}
-                  >
-                    {tech.name}
-                  </span>
-                </div>
-              </Html>
-            </Billboard>
-          );
-        })}
+      <group position={[0, 1, -2]}>
+        {items.map((tech, i) => (
+          <TechOrbitIcon key={tech.name} tech={tech} index={i} total={items.length} />
+        ))}
         {/* glowing core */}
-        <Sphere args={[0.6, 32, 32]} position={[0, 1, -2]}>
+        <Sphere ref={coreRef} args={[0.6, 32, 32]}>
           <meshBasicMaterial color="#00e5ff" transparent opacity={0.6} />
+        </Sphere>
+        <Sphere args={[1.2, 32, 32]}>
+          <meshBasicMaterial color="#00e5ff" transparent opacity={0.06} />
         </Sphere>
       </group>
     </group>
@@ -636,11 +739,15 @@ function ContactSector({ z }: { z: number }) {
       <Torus args={[3, 0.05, 16, 80]} position={[0, 1.5, -2]} rotation={[Math.PI / 2, 0, 0]}>
         <meshBasicMaterial color="#00e5ff" />
       </Torus>
-      <Billboard position={[0, 1.5, -2]}>
-        <Html center transform distanceFactor={6} style={{ pointerEvents: "auto" }}>
-          <ContactTerminal />
-        </Html>
-      </Billboard>
+      {/* Screen-projected Html (no transform) — stays locked to this station's world position */}
+      <Html
+        position={[0, 1.5, -2]}
+        center
+        occlude={false}
+        style={{ pointerEvents: "auto" }}
+      >
+        <ContactTerminal />
+      </Html>
     </group>
   );
 }
@@ -648,27 +755,64 @@ function ContactSector({ z }: { z: number }) {
 function ContactTerminal() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
   const [msg, setMsg] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const subject = encodeURIComponent(`[Portfolio] Transmission from ${name || "Anonymous"}`);
-    const body = encodeURIComponent(`From: ${name} <${email}>\n\n${msg}`);
-    window.location.href = `mailto:pathelaabeer@gmail.com?subject=${subject}&body=${body}`;
-  };
+  const submit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setStatus("sending");
+
+      try {
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+        if (!serviceId || !templateId || !publicKey) {
+          throw new Error("EmailJS environment variables are not configured");
+        }
+
+        await emailjs.send(
+          serviceId,
+          templateId,
+          {
+            from_name: name,
+            from_email: email,
+            reply_to: email,
+            subject: subject || `[Portfolio] Transmission from ${name}`,
+            message: msg,
+            to_email: PORTFOLIO_DATA.contact.email,
+          },
+          publicKey,
+        );
+        setStatus("sent");
+        setName("");
+        setEmail("");
+        setSubject("");
+        setMsg("");
+      } catch {
+        setStatus("error");
+      }
+    },
+    [name, email, subject, msg],
+  );
+
+  const socialClass =
+    "pointer-events-auto hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:scale-110 hover:bg-primary/25 hover:shadow-[0_0_24px_rgba(0,229,255,0.65)]";
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="pointer-events-auto flex flex-col items-center gap-4">
       <form
         onSubmit={submit}
         className="hud-border hud-mono w-[420px] max-w-[90vw] rounded-sm bg-background/85 p-5 text-primary backdrop-blur-md"
         style={{ boxShadow: "0 0 40px oklch(0.82 0.18 195 / 0.4)" }}
       >
         <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-widest text-primary/70">
-          <span>▣ TERMINAL // pathelaabeer@gmail.com</span>
+          <span>▣ TERMINAL // {PORTFOLIO_DATA.contact.email}</span>
           <span className="hud-blink">●</span>
         </div>
-        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; CALLSIGN</label>
+        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; CALLSIGN (NAME)</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -683,6 +827,12 @@ function ContactTerminal() {
           required
           className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
         />
+        <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; SUBJECT</label>
+        <input
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="mb-3 w-full border-b border-primary/40 bg-transparent py-1 text-sm text-primary outline-none focus:border-primary"
+        />
         <label className="block text-[10px] uppercase tracking-widest text-primary/60">&gt; MESSAGE PAYLOAD</label>
         <textarea
           value={msg}
@@ -693,50 +843,64 @@ function ContactTerminal() {
         />
         <button
           type="submit"
-          className="hud-border hud-text w-full rounded-sm bg-primary/15 px-3 py-2 text-xs font-bold transition hover:bg-primary/30"
+          disabled={status === "sending"}
+          className="hud-border hud-text w-full rounded-sm bg-primary/15 px-3 py-2 text-xs font-bold transition hover:bg-primary/30 disabled:opacity-50"
         >
-          ▲ TRANSMIT
+          {status === "sending" ? "▲ TRANSMITTING..." : "▲ TRANSMIT"}
         </button>
+        {status === "sent" && (
+          <p className="mt-2 text-center text-[10px] text-primary">✓ Transmission received. Signal confirmed.</p>
+        )}
+        {status === "error" && (
+          <p className="mt-2 text-center text-[10px] text-red-400">
+            ✗ Transmission failed. Check EmailJS configuration.
+          </p>
+        )}
       </form>
-      
+
       <div className="flex gap-3">
         <a
           href={PORTFOLIO_DATA.socials.github}
           target="_blank"
           rel="noreferrer"
-          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+          className={socialClass}
+          aria-label="GitHub"
         >
-          <SiIcons.SiGithub size={20} color="#7df9ff" />
+          <SiGithub size={20} color="#7df9ff" />
         </a>
         <a
           href={PORTFOLIO_DATA.socials.linkedin}
           target="_blank"
           rel="noreferrer"
-          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+          className={socialClass}
+          aria-label="LinkedIn"
         >
-          <SiIcons.SiLinkedin size={20} color="#7df9ff" />
+          <TbBrandLinkedin size={20} color="#7df9ff" />
         </a>
         <a
           href={PORTFOLIO_DATA.socials.leetcode}
           target="_blank"
           rel="noreferrer"
-          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+          className={socialClass}
+          aria-label="LeetCode"
         >
-          <SiIcons.SiLeetcode size={20} color="#7df9ff" />
+          <span className="hud-text font-bold">LC</span>
         </a>
         <a
           href={PORTFOLIO_DATA.socials.instagram}
           target="_blank"
           rel="noreferrer"
-          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+          className={socialClass}
+          aria-label="Instagram"
         >
-          <SiIcons.SiInstagram size={20} color="#7df9ff" />
+          <SiInstagram size={20} color="#7df9ff" />
         </a>
         <a
           href={`mailto:${PORTFOLIO_DATA.socials.email}`}
-          className="hud-border flex h-10 w-10 items-center justify-center rounded-sm bg-background/80 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-primary/25 hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+          className={socialClass}
+          aria-label="Email"
         >
-          <SiIcons.SiGmail size={20} color="#7df9ff" />
+          <span className="hud-text font-bold">@</span>
         </a>
       </div>
     </div>

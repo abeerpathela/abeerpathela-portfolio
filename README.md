@@ -3,7 +3,7 @@
 A next-generation **interactive 3D portfolio** built to showcase my journey as a **Full Stack Developer, AI Enthusiast, and Software Engineer** through an immersive space-inspired experience.
 
 Unlike traditional portfolio websites, this project presents my work as a **mission-based exploration**, allowing visitors to navigate through projects, achievements, technologies, and experiences inside a futuristic galaxy.
-[![Abeer Pathela Portfolio]("https://github.com/user-attachments/assets/f2e39552-d612-48eb-971c-f691a2ff0c5b")](https://abeerpathela.in)
+[![Abeer Pathela Portfolio](https://github.com/user-attachments/assets/f2e39552-d612-48eb-971c-f691a2ff0c5b)](https://abeerpathela.in)
 
 
 

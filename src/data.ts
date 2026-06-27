@@ -3,7 +3,7 @@ export const PORTFOLIO_DATA = {
     name: "Abeer Pathela",
     title: "Creative Engineer · Full-Stack · AI",
     subtitle: "Building futuristic digital experiences powered by AI, Web, and Mobile technologies.",
-    scrollText: "Scroll to dock with each project · 9 missions ahead",
+    scrollText: "Scroll to explore · 9 projects ahead",
     resume: "/Abeer_Pathela_Resume.pdf",
   },
 

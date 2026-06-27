@@ -5,9 +5,10 @@ interface HUDProps {
   currentSector: number;
   currentLabel: string;
   totalStations: number;
+  scrollHint?: string;
 }
 
-export function HUD({ currentSector, currentLabel, totalStations }: HUDProps) {
+export function HUD({ currentSector, currentLabel, totalStations, scrollHint }: HUDProps) {
   const [time, setTime] = useState("");
 
   useEffect(() => {
@@ -29,14 +30,14 @@ export function HUD({ currentSector, currentLabel, totalStations }: HUDProps) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 scanlines">
-      {/* Corner brackets */}
+      {/* Corner brackets — decorative only, inset from edges */}
       <Corner pos="top-left" />
       <Corner pos="top-right" />
       <Corner pos="bottom-left" />
       <Corner pos="bottom-right" />
 
-      {/* Top bar */}
-      <div className="pointer-events-auto absolute left-0 right-0 top-0 flex items-center justify-between gap-4 px-4 py-3 sm:px-8">
+      {/* Top bar — compact, does not cover scene center */}
+      <div className="pointer-events-auto absolute left-0 right-0 top-0 flex items-center justify-between gap-4 px-4 py-2 sm:px-8 sm:py-3">
         <div className="flex items-center gap-3">
           <div className="h-2.5 w-2.5 rounded-full bg-primary hud-blink shadow-[0_0_12px_currentColor]" />
           <span className="hud-text text-xs sm:text-sm font-bold">
@@ -49,7 +50,7 @@ export function HUD({ currentSector, currentLabel, totalStations }: HUDProps) {
         <a
           href={PORTFOLIO_DATA.stats.resume}
           download
-          className="hud-border hud-text rounded-sm bg-background/40 px-3 py-1.5 text-[10px] sm:text-xs font-bold backdrop-blur-sm transition-all hover:bg-primary/15 hover:shadow-[0_0_20px_oklch(0.82_0.18_195/0.6)]"
+          className="hud-border hud-text rounded-sm bg-background/40 px-3 py-1.5 text-[10px] sm:text-xs font-bold backdrop-blur-sm transition-all hover:bg-primary/15 hover:shadow-[0_0_20px_oklch(0.82_0.13_75/0.5)]"
         >
           ▼ DOWNLOAD RESUME
         </a>
@@ -81,27 +82,26 @@ export function HUD({ currentSector, currentLabel, totalStations }: HUDProps) {
         <StatBlock label="SECTOR" value={`${currentSector + 1}/${totalSectors}`} />
       </div>
 
-      {/* Bottom bar – sector tracker */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 px-4 py-3 sm:px-8">
-        <div className="hud-border hud-mono pointer-events-auto rounded-sm bg-background/50 px-3 py-2 text-[10px] uppercase tracking-widest text-primary backdrop-blur-sm">
-          <div className="text-primary/50 text-[9px]">SECTOR TRACKER</div>
-          <div className="hud-text text-sm font-bold">▣ {currentLabel}</div>
-        </div>
-        <div className="hud-mono hidden text-right text-[10px] uppercase tracking-widest text-primary/60 sm:block">
-          <div>SCROLL TO NAVIGATE ↓</div>
-          <div className="text-primary/40">DRAG TO ORBIT</div>
+      {/* Bottom dock bar — scroll hint lives here, never over hero name */}
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2 px-4 pb-3 pt-8 sm:pb-4 bg-gradient-to-t from-background/85 via-background/30 to-transparent">
+        {currentSector === 0 && scrollHint && (
+          <div className="scroll-hint hud-mono pointer-events-none text-center text-[10px] uppercase tracking-[0.25em] text-primary/70 sm:text-xs">
+            {scrollHint}
+            <span className="mt-1 block animate-bounce text-primary">↓</span>
+          </div>
+        )}
+        <div className="flex w-full items-end justify-between gap-4 sm:px-4">
+          <div className="hud-border hud-mono pointer-events-auto max-w-[min(100%,20rem)] rounded-sm bg-background/60 px-3 py-1.5 text-[10px] uppercase tracking-widest text-primary backdrop-blur-sm">
+            <div className="text-primary/45 text-[8px] sm:text-[9px]">NOW VIEWING</div>
+            <div className="hud-text truncate text-xs sm:text-sm font-bold">▣ {currentLabel}</div>
+          </div>
+          <div className="hud-mono hidden pb-0.5 text-right text-[9px] uppercase tracking-widest text-primary/45 sm:block">
+            <div>{currentSector === totalStations - 1 ? "SCROLL ↑" : "SCROLL ↓"}</div>
+          </div>
         </div>
       </div>
 
-      {/* Center crosshair */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="relative h-16 w-16 opacity-30">
-          <div className="absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-primary" />
-          <div className="absolute left-1/2 bottom-0 h-3 w-px -translate-x-1/2 bg-primary" />
-          <div className="absolute top-1/2 left-0 h-px w-3 -translate-y-1/2 bg-primary" />
-          <div className="absolute top-1/2 right-0 h-px w-3 -translate-y-1/2 bg-primary" />
-        </div>
-      </div>
+      {/* Reticle removed — was overlapping content */}
     </div>
   );
 }
@@ -116,7 +116,7 @@ function Corner({ pos }: { pos: "top-left" | "top-right" | "bottom-left" | "bott
   return (
     <div
       className={`absolute h-6 w-6 border-primary corner-pulse ${map[pos]}`}
-      style={{ boxShadow: "0 0 8px oklch(0.82 0.18 195 / 0.6)" }}
+      style={{ boxShadow: "0 0 8px oklch(0.82 0.13 75 / 0.45)" }}
     />
   );
 }

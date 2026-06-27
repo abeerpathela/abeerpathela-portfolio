@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { HUD } from "./HUD";
+import { ContactOverlay } from "./ContactOverlay";
 import { PORTFOLIO_DATA } from "../../data";
 
 // 1 intro + 9 projects + participations + tech + achievements + contact = 14
 const TOTAL_STATIONS = 1 + PORTFOLIO_DATA.projects.length + 4;
+const CONTACT_STATION = TOTAL_STATIONS - 1;
 
 const Scene = lazy(() => import("./Scene").then((m) => ({ default: m.Scene })));
 
@@ -28,7 +30,13 @@ export function Portfolio() {
       ) : (
         <BootScreen />
       )}
-      <HUD currentSector={sector} currentLabel={label} totalStations={TOTAL_STATIONS} />
+      <ContactOverlay visible={sector === CONTACT_STATION} />
+      <HUD
+        currentSector={sector}
+        currentLabel={label}
+        totalStations={TOTAL_STATIONS}
+        scrollHint={PORTFOLIO_DATA.hero.scrollText}
+      />
     </main>
   );
 }
